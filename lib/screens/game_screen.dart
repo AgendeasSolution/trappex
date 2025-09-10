@@ -1,0 +1,344 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import '../models/game_edge.dart';
+import '../services/game_service.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_constants.dart';
+import '../widgets/game/game_board.dart';
+import '../widgets/game/exit_button.dart';
+import '../widgets/game/turn_indicator.dart';
+import '../widgets/common/popup_overlay.dart';
+import 'home_screen.dart';
+
+/// Main game screen widget
+class GameScreen extends StatefulWidget {
+  const GameScreen({super.key});
+
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  // Game service instance
+  final GameService _gameService = GameService();
+  
+  // UI State Variables
+  bool _isWelcomeVisible = true;
+  bool _isGameOverVisible = false;
+  String _gameOverTitle = "Game Over!";
+  String _gameOverMessage = "The game has ended.";
+  int _selectedGridSize = AppConstants.classicGridSize;
+  String _gameMode = AppConstants.vsComputerMode;
+  String _player1Name = "Player 1";
+  String _player2Name = "Player 2";
+  GameEdge? _hoveredEdge;
+  
+  // Track who should go first in the next game (alternates between 1 and 2)
+  int _nextGameFirstTurn = 1;
+  bool _isFirstGame = true; // Track if this is the first game in 1v1 mode
+
+  @override
+  void initState() {
+    super.initState();
+    _gameService.initGame(_selectedGridSize, initialTurn: _nextGameFirstTurn);
+  }
+
+  /// Starts a new game from the welcome screen settings
+  void _startNewGame() {
+    setState(() {
+      _isWelcomeVisible = false;
+      _isGameOverVisible = false;
+      
+      // In 1v1 mode, first game always starts with Player 1
+      // In vs Computer mode, use the alternating logic
+      int initialTurn = _nextGameFirstTurn;
+      if (_gameMode == AppConstants.oneVsOneMode && _isFirstGame) {
+        initialTurn = 1; // Always start with Player 1 in first 1v1 game
+        _isFirstGame = false; // Mark that we've had the first game
+      }
+      
+      _gameService.initGame(_selectedGridSize, initialTurn: initialTurn);
+      
+      // Alternate the first turn for the next game (except for first 1v1 game)
+      if (!(_gameMode == AppConstants.oneVsOneMode && _isFirstGame)) {
+        _nextGameFirstTurn = _nextGameFirstTurn == 1 ? 2 : 1;
+      }
+    });
+    
+    // If it's the computer's turn in vs Computer mode, make AI move
+    if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _aiTurn();
+      });
+    }
+  }
+
+  /// Handles the player's move
+  void _handlePlayerMove(GameEdge move) async {
+    // In vs Computer mode, only allow Player 1 to make moves
+    // In 1v1 mode, allow both players to make moves
+    if (_gameMode == AppConstants.vsComputerMode && _gameService.turn != 1) return;
+    
+    final claimed = _gameService.handlePlayerMove(move);
+    setState(() {}); // Redraw the board
+
+    if (_gameService.allEdgesFilled()) {
+      _endGame();
+      return;
+    }
+
+    if (claimed == 0) {
+      // If vs Computer mode and it's now the computer's turn, make AI move
+      if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        _aiTurn();
+      }
+    }
+  }
+
+  /// Executes the computer's turn
+  void _aiTurn() {
+    if (_gameService.turn != 2) return;
+
+    _gameService.aiTurn();
+    setState(() {}); // Redraw
+
+    if (_gameService.allEdgesFilled()) {
+      _endGame();
+    }
+  }
+
+  /// Ends the game and shows the game over popup
+  void _endGame() {
+    setState(() {
+      final scores = _gameService.scores;
+      if (scores[1]! > scores[2]!) {
+        if (_gameMode == AppConstants.vsComputerMode) {
+          _gameOverTitle = "Player Wins! 🎉";
+          _gameOverMessage =
+              "Congratulations! You won ${scores[1]} to ${scores[2]}.";
+        } else {
+          _gameOverTitle = "Player 1 Wins! 🎉";
+          _gameOverMessage =
+              "Player 1 won ${scores[1]} to ${scores[2]}!";
+        }
+      } else if (scores[2]! > scores[1]!) {
+        if (_gameMode == AppConstants.vsComputerMode) {
+          _gameOverTitle = "Computer Wins! 🤖";
+          _gameOverMessage = "The computer won ${scores[2]} to ${scores[1]}.";
+        } else {
+          _gameOverTitle = "Player 2 Wins! 🎉";
+          _gameOverMessage =
+              "Player 2 won ${scores[2]} to ${scores[1]}!";
+        }
+      } else {
+        _gameOverTitle = "It's a Tie! 🤝";
+        _gameOverMessage = "Both players scored ${scores[1]} points.";
+      }
+      _isGameOverVisible = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isWelcomeVisible) {
+      return HomeScreen(
+        onStartGame: _startNewGame,
+        selectedGridSize: _selectedGridSize,
+        gameMode: _gameMode,
+        player1Name: _player1Name,
+        player2Name: _player2Name,
+        onGridSizeChanged: (size) => setState(() => _selectedGridSize = size),
+        onGameModeChanged: (mode) => setState(() => _gameMode = mode),
+        onPlayer1NameChanged: (name) => setState(() => _player1Name = name),
+        onPlayer2NameChanged: (name) => setState(() => _player2Name = name),
+      );
+    }
+    
+    return Scaffold(
+      backgroundColor: AppColors.bgColor,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            _buildGameUI(),
+            if (_isGameOverVisible) _buildGameOverPopup(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGameUI() {
+    return LayoutBuilder(builder: (context, constraints) {
+      // Make the UI responsive
+      bool isMobile = constraints.maxWidth < 768;
+      double topPadding = isMobile ? 8 : 20;
+
+      return Stack(
+        children: [
+          // Header Row with Exit Button and Game Name
+          Positioned(
+            top: topPadding,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: topPadding),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Exit Button
+                  ExitButton(
+                    onPressed: () => setState(() {
+                      _isWelcomeVisible = true;
+                      _isFirstGame = true; // Reset for new 1v1 games
+                    }),
+                  ),
+                  // Game Name
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        AppConstants.appName,
+                        style: TextStyle(
+                          fontSize: isMobile ? 28 : 32,
+                          color: AppColors.p1Color,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black38,
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  // Spacer to balance the layout
+                  SizedBox(width: 60), // Same width as exit button to center the title
+                ],
+              ),
+            ),
+          ),
+          // Player 2/Computer Turn Indicator (Top)
+          if (_gameService.turn == 2)
+            Positioned(
+              top: topPadding + 100, // More gap from board
+              left: 0,
+              right: 0,
+              child: Center(
+                child: TurnIndicator(
+                  turn: _gameService.turn, 
+                  gameMode: _gameMode,
+                  player1Name: _player1Name,
+                  player2Name: _player2Name,
+                ),
+              ),
+            ),
+          // Player 1 Turn Indicator (Bottom)
+          if (_gameService.turn == 1)
+            Positioned(
+              bottom: topPadding + 100, // More gap from board
+              left: 0,
+              right: 0,
+              child: Center(
+                child: TurnIndicator(
+                  turn: _gameService.turn, 
+                  gameMode: _gameMode,
+                  player1Name: _player1Name,
+                  player2Name: _player2Name,
+                ),
+              ),
+            ),
+          // Game Board
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: GameBoard(
+                n: _gameService.n,
+                horizontalEdges: _gameService.horizontalEdges,
+                verticalEdges: _gameService.verticalEdges,
+                boxes: _gameService.boxes,
+                turn: _gameService.turn,
+                onEdgeHover: (edge) {
+                  // In vs Computer mode, only show hover for Player 1
+                  // In 1v1 mode, show hover for both players
+                  bool canHover = _gameMode == AppConstants.vsComputerMode 
+                      ? _gameService.turn == 1 
+                      : true;
+                  
+                  if (canHover && _gameService.isValidMove(edge)) {
+                    setState(() => _hoveredEdge = edge);
+                  } else {
+                    setState(() => _hoveredEdge = null);
+                  }
+                },
+                onEdgeTap: (edge) {
+                  _handlePlayerMove(edge);
+                },
+                hoveredEdge: _hoveredEdge,
+              ),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildGameOverPopup() {
+    return PopupOverlay(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(_gameOverTitle,
+              style: const TextStyle(
+                  fontSize: 28, color: AppColors.p1Color, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          Text(_gameOverMessage,
+              style:
+                  const TextStyle(fontSize: 16, color: AppColors.mutedColor, height: 1.6),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ElevatedButton(
+                  onPressed: () => _startNewGame(),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.p1Color,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8))),
+                  child: const Text("Play Again",
+                      style: TextStyle(fontSize: 16, color: Colors.black),
+                      textAlign: TextAlign.center),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: ElevatedButton(
+                  onPressed: () => setState(() {
+                    _isWelcomeVisible = true;
+                    _isFirstGame = true; // Reset for new 1v1 games
+                  }),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.p2Color,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8))),
+                  child: const Text("Go to Home",
+                      style: TextStyle(fontSize: 16, color: Colors.black),
+                      textAlign: TextAlign.center),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
