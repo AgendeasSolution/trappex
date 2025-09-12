@@ -13,7 +13,7 @@ class ExitButton extends StatelessWidget {
       onTap: onPressed,
       child: GlassmorphicContainer(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: const Icon(Icons.exit_to_app_rounded, color: Colors.white, size: 24),
+        child: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
       ),
     );
   }

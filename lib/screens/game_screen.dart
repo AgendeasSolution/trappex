@@ -118,22 +118,26 @@ class _GameScreenState extends State<GameScreen> {
           _gameOverMessage =
               "Congratulations! You won ${scores[1]} to ${scores[2]}.";
         } else {
-          _gameOverTitle = "Player 1 Wins! 🎉";
+          _gameOverTitle = "$_player1Name Wins! 🎉";
           _gameOverMessage =
-              "Player 1 won ${scores[1]} to ${scores[2]}!";
+              "$_player1Name won ${scores[1]} to ${scores[2]}!";
         }
       } else if (scores[2]! > scores[1]!) {
         if (_gameMode == AppConstants.vsComputerMode) {
           _gameOverTitle = "Computer Wins! 🤖";
           _gameOverMessage = "The computer won ${scores[2]} to ${scores[1]}.";
         } else {
-          _gameOverTitle = "Player 2 Wins! 🎉";
+          _gameOverTitle = "$_player2Name Wins! 🎉";
           _gameOverMessage =
-              "Player 2 won ${scores[2]} to ${scores[1]}!";
+              "$_player2Name won ${scores[2]} to ${scores[1]}!";
         }
       } else {
         _gameOverTitle = "It's a Tie! 🤝";
-        _gameOverMessage = "Both players scored ${scores[1]} points.";
+        if (_gameMode == AppConstants.vsComputerMode) {
+          _gameOverMessage = "You and the computer both scored ${scores[1]} points.";
+        } else {
+          _gameOverMessage = "$_player1Name and $_player2Name both scored ${scores[1]} points.";
+        }
       }
       _isGameOverVisible = true;
     });
