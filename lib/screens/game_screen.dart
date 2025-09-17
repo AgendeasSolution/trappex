@@ -2,12 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/game_edge.dart';
 import '../services/game_service.dart';
+import '../services/interstitial_ad_service.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import '../widgets/game/game_board.dart';
 import '../widgets/game/exit_button.dart';
 import '../widgets/game/turn_indicator.dart';
 import '../widgets/common/popup_overlay.dart';
+import '../widgets/common/ad_banner.dart';
+import '../widgets/common/glassmorphic_container.dart';
 import 'home_screen.dart';
 
 /// Main game screen widget
@@ -41,6 +44,9 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     _gameService.initGame(_selectedGridSize, initialTurn: _nextGameFirstTurn);
+    
+    // Preload interstitial ad for better user experience
+    InterstitialAdService.instance.preloadAd();
   }
 
   /// Starts a new game from the welcome screen settings
@@ -142,6 +148,63 @@ class _GameScreenState extends State<GameScreen> {
       _isGameOverVisible = true;
     });
   }
+  
+  /// Handle restart button press with interstitial ad
+  void _handleRestartButton() async {
+    // Show interstitial ad with 50% probability
+    await _showInterstitialAd();
+    
+    // Navigate to home screen after ad (or immediately if ad not shown)
+    setState(() {
+      _isWelcomeVisible = true;
+      _isFirstGame = true; // Reset for new 1v1 games
+    });
+  }
+  
+  /// Handle play again button press with interstitial ad
+  void _handlePlayAgainButton() async {
+    // Show interstitial ad with 50% probability
+    await _showInterstitialAd();
+    
+    // Start new game after ad (or immediately if ad not shown)
+    _startNewGame();
+  }
+  
+  /// Handle reset button press - resets current game board with interstitial ad
+  void _handleResetButton() async {
+    // Show interstitial ad with 50% probability
+    await _showInterstitialAd();
+    
+    // Reset the current game with same settings after ad (or immediately if no ad shown)
+    _gameService.initGame(_selectedGridSize, initialTurn: _gameService.turn);
+    setState(() {
+      _hoveredEdge = null; // Clear any hovered edge
+    });
+    
+    // If it's the computer's turn in vs Computer mode, make AI move
+    if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _aiTurn();
+      });
+    }
+  }
+  
+  /// Show interstitial ad with probability
+  Future<bool> _showInterstitialAd() async {
+    try {
+      return await InterstitialAdService.instance.showAdWithProbability(
+        onAdDismissed: () {
+          // Preload next ad after current one is dismissed
+          InterstitialAdService.instance.preloadAd();
+        },
+      );
+    } catch (e) {
+      print('Error showing interstitial ad: $e');
+      // Preload next ad even if current one failed
+      InterstitialAdService.instance.preloadAd();
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -192,10 +255,7 @@ class _GameScreenState extends State<GameScreen> {
                 children: [
                   // Exit Button
                   ExitButton(
-                    onPressed: () => setState(() {
-                      _isWelcomeVisible = true;
-                      _isFirstGame = true; // Reset for new 1v1 games
-                    }),
+                    onPressed: () => _handleRestartButton(),
                   ),
                   // Game Name
                   Expanded(
@@ -218,8 +278,14 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                     ),
                   ),
-                  // Spacer to balance the layout
-                  SizedBox(width: 60), // Same width as exit button to center the title
+                  // Reset Button
+                  GestureDetector(
+                    onTap: () => _handleResetButton(),
+                    child: GlassmorphicContainer(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      child: const Icon(Icons.refresh, color: Colors.white, size: 24),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -284,6 +350,13 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           ),
+          // Ad Banner at bottom
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: const AdBanner(),
+          ),
         ],
       );
     });
@@ -309,7 +382,7 @@ class _GameScreenState extends State<GameScreen> {
             children: [
               Flexible(
                 child: ElevatedButton(
-                  onPressed: () => _startNewGame(),
+                  onPressed: () => _handlePlayAgainButton(),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.p1Color,
                       padding: const EdgeInsets.symmetric(

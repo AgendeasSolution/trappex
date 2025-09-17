@@ -47,7 +47,7 @@ class TurnIndicator extends StatelessWidget {
     }
     
     return Transform.rotate(
-      angle: turn == 2 ? pi : 0, // 180 degrees for player 2
+      angle: (turn == 2 && gameMode != AppConstants.vsComputerMode) ? pi : 0, // 180 degrees for player 2 in 1v1 mode only
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(

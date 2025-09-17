@@ -4,6 +4,7 @@ import '../constants/app_constants.dart';
 import '../widgets/home/game_mode_chip.dart';
 import '../widgets/home/grid_chip.dart';
 import '../widgets/common/popup_overlay.dart';
+import '../widgets/common/ad_banner.dart';
 
 /// Home screen widget for game setup and welcome
 class HomeScreen extends StatefulWidget {
@@ -57,84 +58,93 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Title
-                    const Text(
-                      AppConstants.appName,
-                      style: TextStyle(
-                        fontSize: 36,
-                        color: AppColors.p1Color,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black38,
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
+      body: Column(
+        children: [
+          // Main content area
+          Expanded(
+            child: SafeArea(
+              child: Stack(
+                children: [
+                  SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Title
+                          const Text(
+                            AppConstants.appName,
+                            style: TextStyle(
+                              fontSize: 36,
+                              color: AppColors.p1Color,
+                              fontWeight: FontWeight.bold,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black38,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
                           ),
+                          const SizedBox(height: 8),
+                          Text(
+                            AppConstants.appDescription,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.mutedColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 40),
+                          
+                          // Game Mode Selector
+                          _buildGameModeSelector(),
+                          const SizedBox(height: 16),
+                          
+                          // Grid Size Selector
+                          _buildGridSelector(context),
+                          const SizedBox(height: 40),
+                          
+                          // Play Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: widget.onStartGame,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.p1Color,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 8,
+                                shadowColor: AppColors.p1Color.withOpacity(0.3),
+                              ),
+                              child: const Text(
+                                "Start Game",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
                         ],
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      AppConstants.appDescription,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppColors.mutedColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 40),
-                    
-                    // Game Mode Selector
-                    _buildGameModeSelector(),
-                    const SizedBox(height: 16),
-                    
-                    // Grid Size Selector
-                    _buildGridSelector(context),
-                    const SizedBox(height: 40),
-                    
-                    // Play Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: widget.onStartGame,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.p1Color,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 8,
-                          shadowColor: AppColors.p1Color.withOpacity(0.3),
-                        ),
-                        child: const Text(
-                          "Start Game",
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
+                  ),
+                  if (_isHowToPlayVisible) _buildHowToPlayPopup(),
+                ],
               ),
             ),
-            if (_isHowToPlayVisible) _buildHowToPlayPopup(),
-          ],
-        ),
+          ),
+          // Ad Banner - completely independent at bottom
+          const AdBanner(),
+        ],
       ),
     );
   }
