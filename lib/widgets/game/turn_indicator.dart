@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_constants.dart';
@@ -45,37 +46,40 @@ class TurnIndicator extends StatelessWidget {
       }
     }
     
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: playerColor.withOpacity(0.1),
-        border: Border.all(
-          color: playerColor,
-          width: 2,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            playerIcon,
+    return Transform.rotate(
+      angle: turn == 2 ? pi : 0, // 180 degrees for player 2
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: playerColor.withOpacity(0.1),
+          border: Border.all(
             color: playerColor,
-            size: 24,
+            width: 2,
           ),
-          const SizedBox(width: 8),
-          Text(playerName,
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: playerColor,
-                  shadows: const [
-                    Shadow(
-                        color: Colors.black38,
-                        blurRadius: 4,
-                        offset: Offset(0, 2))
-                  ])),
-        ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              playerIcon,
+              color: playerColor,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(playerName,
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: playerColor,
+                    shadows: const [
+                      Shadow(
+                          color: Colors.black38,
+                          blurRadius: 4,
+                          offset: Offset(0, 2))
+                    ])),
+          ],
+        ),
       ),
     );
   }
