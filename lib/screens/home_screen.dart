@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
+import '../services/audio_service.dart';
 import '../widgets/home/game_mode_chip.dart';
 import '../widgets/home/grid_chip.dart';
 import '../widgets/common/popup_overlay.dart';
@@ -57,14 +58,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgColor,
-      body: Column(
-        children: [
-          // Main content area
-          Expanded(
-            child: SafeArea(
-              child: Stack(
-                children: [
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/img/page_bg.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
+          children: [
+            // Main content area
+            Expanded(
+              child: SafeArea(
+                child: Stack(
+                  children: [
                   SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
@@ -72,23 +79,37 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // Title
-                          const Text(
-                            AppConstants.appName,
-                            style: TextStyle(
-                              fontSize: 36,
-                              color: AppColors.p1Color,
-                              fontWeight: FontWeight.bold,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black38,
-                                  blurRadius: 8,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
+                          Container(
+                            margin: const EdgeInsets.only(top: 16),
+                            child: Text(
+                              AppConstants.appName,
+                              style: TextStyle(
+                                fontSize: 52,
+                                color: AppColors.p1Color,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black38,
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                  Shadow(
+                                    color: AppColors.p1Color.withOpacity(0.3),
+                                    blurRadius: 18,
+                                    offset: const Offset(0, 0),
+                                  ),
+                                  Shadow(
+                                    color: AppColors.p1Color.withOpacity(0.2),
+                                    blurRadius: 28,
+                                    offset: const Offset(0, 0),
+                                  ),
+                                ],
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 8),
+
                           Text(
                             AppConstants.appDescription,
                             style: TextStyle(
@@ -112,7 +133,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: widget.onStartGame,
+                              onPressed: () async {
+                                await AudioService.instance.playClickSound();
+                                widget.onStartGame();
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.p1Color,
                                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -145,13 +169,17 @@ class _HomeScreenState extends State<HomeScreen> {
           // Ad Banner - completely independent at bottom
           const AdBanner(),
         ],
+        ),
       ),
     );
   }
 
   Widget _buildCompactHowToPlayButton(BuildContext context) {
     return OutlinedButton.icon(
-      onPressed: () => setState(() => _isHowToPlayVisible = true),
+      onPressed: () async {
+        await AudioService.instance.playClickSound();
+        setState(() => _isHowToPlayVisible = true);
+      },
       icon: const Icon(Icons.help_outline, color: AppColors.mutedColor, size: 18),
       label: const Text(
         "How to Play",
@@ -230,7 +258,10 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
-                  onPressed: () => setState(() => _isHowToPlayVisible = false),
+                  onPressed: () async {
+                    await AudioService.instance.playClickSound();
+                    setState(() => _isHowToPlayVisible = false);
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.p1Color,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -312,14 +343,19 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.mutedColor.withOpacity(0.1),
+        color: Colors.black.withOpacity(0.7),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.mutedColor.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 10,
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.white.withOpacity(0.15),
+            blurRadius: 18,
+            spreadRadius: 1,
           ),
         ],
       ),
@@ -328,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             "Player Names",
             style: TextStyle(
-              color: AppColors.mutedColor,
+              color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),

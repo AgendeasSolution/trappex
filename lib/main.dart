@@ -3,12 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/splash_screen.dart';
 import 'constants/app_constants.dart';
+import 'services/audio_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Google Mobile Ads SDK
   await MobileAds.instance.initialize();
+  
+  // Initialize Audio Service
+  await AudioService.instance.initialize();
   
   // Set preferred orientations to portrait only
   SystemChrome.setPreferredOrientations([

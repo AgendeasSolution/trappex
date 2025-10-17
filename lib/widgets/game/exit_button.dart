@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../common/glassmorphic_container.dart';
+import '../../services/audio_service.dart';
 
 /// Exit button widget for navigation
 class ExitButton extends StatelessWidget {
@@ -10,10 +11,13 @@ class ExitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onPressed,
+      onTap: () async {
+        await AudioService.instance.playClickSound();
+        onPressed();
+      },
       child: GlassmorphicContainer(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: const Icon(Icons.arrow_back, color: Colors.white, size: 18),
       ),
     );
   }

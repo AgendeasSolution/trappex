@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/game_edge.dart';
 import '../services/game_service.dart';
 import '../services/interstitial_ad_service.dart';
+import '../services/audio_service.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import '../widgets/game/game_board.dart';
@@ -73,7 +74,7 @@ class _GameScreenState extends State<GameScreen> {
     
     // If it's the computer's turn in vs Computer mode, make AI move
     if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 1000), () {
         _aiTurn();
       });
     }
@@ -85,7 +86,17 @@ class _GameScreenState extends State<GameScreen> {
     // In 1v1 mode, allow both players to make moves
     if (_gameMode == AppConstants.vsComputerMode && _gameService.turn != 1) return;
     
+    // Store the current turn before making the move
+    final currentTurn = _gameService.turn;
     final claimed = _gameService.handlePlayerMove(move);
+    
+    // Play move sound based on who made the move (before turn changed)
+    if (currentTurn == 1) {
+      await AudioService.instance.playPlayer1Move();
+    } else {
+      await AudioService.instance.playPlayer2Move();
+    }
+    
     setState(() {}); // Redraw the board
 
     if (_gameService.allEdgesFilled()) {
@@ -96,17 +107,21 @@ class _GameScreenState extends State<GameScreen> {
     if (claimed == 0) {
       // If vs Computer mode and it's now the computer's turn, make AI move
       if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 1000));
         _aiTurn();
       }
     }
   }
 
   /// Executes the computer's turn
-  void _aiTurn() {
+  void _aiTurn() async {
     if (_gameService.turn != 2) return;
 
     _gameService.aiTurn();
+    
+    // Play computer move sound
+    await AudioService.instance.playPlayer2Move();
+    
     setState(() {}); // Redraw
 
     if (_gameService.allEdgesFilled()) {
@@ -115,42 +130,56 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   /// Ends the game and shows the game over popup
-  void _endGame() {
-    setState(() {
-      final scores = _gameService.scores;
-      if (scores[1]! > scores[2]!) {
-        if (_gameMode == AppConstants.vsComputerMode) {
-          _gameOverTitle = "Player Wins! 🎉";
-          _gameOverMessage =
-              "Congratulations! You won ${scores[1]} to ${scores[2]}.";
-        } else {
-          _gameOverTitle = "$_player1Name Wins! 🎉";
-          _gameOverMessage =
-              "$_player1Name won ${scores[1]} to ${scores[2]}!";
-        }
-      } else if (scores[2]! > scores[1]!) {
-        if (_gameMode == AppConstants.vsComputerMode) {
-          _gameOverTitle = "Computer Wins! 🤖";
-          _gameOverMessage = "The computer won ${scores[2]} to ${scores[1]}.";
-        } else {
-          _gameOverTitle = "$_player2Name Wins! 🎉";
-          _gameOverMessage =
-              "$_player2Name won ${scores[2]} to ${scores[1]}!";
-        }
+  void _endGame() async {
+    final scores = _gameService.scores;
+    
+    // Play appropriate sound based on game result
+    if (scores[1]! > scores[2]!) {
+      // Player 1 wins
+      await AudioService.instance.playWinSound();
+      if (_gameMode == AppConstants.vsComputerMode) {
+        _gameOverTitle = "Player Wins! 🎉";
+        _gameOverMessage =
+            "Congratulations! You won ${scores[1]} to ${scores[2]}.";
       } else {
-        _gameOverTitle = "It's a Tie! 🤝";
-        if (_gameMode == AppConstants.vsComputerMode) {
-          _gameOverMessage = "You and the computer both scored ${scores[1]} points.";
-        } else {
-          _gameOverMessage = "$_player1Name and $_player2Name both scored ${scores[1]} points.";
-        }
+        _gameOverTitle = "$_player1Name Wins! 🎉";
+        _gameOverMessage =
+            "$_player1Name won ${scores[1]} to ${scores[2]}!";
       }
+    } else if (scores[2]! > scores[1]!) {
+      // Player 2/Computer wins
+      if (_gameMode == AppConstants.vsComputerMode) {
+        // Player loses to computer
+        await AudioService.instance.playLoseSound();
+        _gameOverTitle = "Computer Wins! 🤖";
+        _gameOverMessage = "The computer won ${scores[2]} to ${scores[1]}.";
+      } else {
+        // Player 2 wins in 1v1
+        await AudioService.instance.playWinSound();
+        _gameOverTitle = "$_player2Name Wins! 🎉";
+        _gameOverMessage =
+            "$_player2Name won ${scores[2]} to ${scores[1]}!";
+      }
+    } else {
+      // Tie - no specific sound for tie
+      _gameOverTitle = "It's a Tie! 🤝";
+      if (_gameMode == AppConstants.vsComputerMode) {
+        _gameOverMessage = "You and the computer both scored ${scores[1]} points.";
+      } else {
+        _gameOverMessage = "$_player1Name and $_player2Name both scored ${scores[1]} points.";
+      }
+    }
+    
+    setState(() {
       _isGameOverVisible = true;
     });
   }
   
   /// Handle restart button press with interstitial ad
   void _handleRestartButton() async {
+    // Play click sound
+    await AudioService.instance.playClickSound();
+    
     // Show interstitial ad with 50% probability
     await _showInterstitialAd();
     
@@ -163,6 +192,9 @@ class _GameScreenState extends State<GameScreen> {
   
   /// Handle play again button press with interstitial ad
   void _handlePlayAgainButton() async {
+    // Play click sound
+    await AudioService.instance.playClickSound();
+    
     // Show interstitial ad with 50% probability
     await _showInterstitialAd();
     
@@ -172,6 +204,9 @@ class _GameScreenState extends State<GameScreen> {
   
   /// Handle reset button press - resets current game board with interstitial ad
   void _handleResetButton() async {
+    // Play click sound
+    await AudioService.instance.playClickSound();
+    
     // Show interstitial ad with 50% probability
     await _showInterstitialAd();
     
@@ -183,7 +218,7 @@ class _GameScreenState extends State<GameScreen> {
     
     // If it's the computer's turn in vs Computer mode, make AI move
     if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 1000), () {
         _aiTurn();
       });
     }
@@ -199,7 +234,6 @@ class _GameScreenState extends State<GameScreen> {
         },
       );
     } catch (e) {
-      print('Error showing interstitial ad: $e');
       // Preload next ad even if current one failed
       InterstitialAdService.instance.preloadAd();
       return false;
@@ -223,13 +257,20 @@ class _GameScreenState extends State<GameScreen> {
     }
     
     return Scaffold(
-      backgroundColor: AppColors.bgColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            _buildGameUI(),
-            if (_isGameOverVisible) _buildGameOverPopup(),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/img/page_bg.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              _buildGameUI(),
+              if (_isGameOverVisible) _buildGameOverPopup(),
+            ],
+          ),
         ),
       ),
     );
@@ -282,8 +323,8 @@ class _GameScreenState extends State<GameScreen> {
                   GestureDetector(
                     onTap: () => _handleResetButton(),
                     child: GlassmorphicContainer(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      child: const Icon(Icons.refresh, color: Colors.white, size: 24),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: const Icon(Icons.refresh, color: Colors.white, size: 18),
                     ),
                   ),
                 ],
@@ -397,10 +438,13 @@ class _GameScreenState extends State<GameScreen> {
               const SizedBox(width: 12),
               Flexible(
                 child: ElevatedButton(
-                  onPressed: () => setState(() {
-                    _isWelcomeVisible = true;
-                    _isFirstGame = true; // Reset for new 1v1 games
-                  }),
+                  onPressed: () async {
+                    await AudioService.instance.playClickSound();
+                    setState(() {
+                      _isWelcomeVisible = true;
+                      _isFirstGame = true; // Reset for new 1v1 games
+                    });
+                  },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.p2Color,
                       padding: const EdgeInsets.symmetric(

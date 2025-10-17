@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
+import '../../services/audio_service.dart';
 
 /// Grid size selection chip widget
 class GridChip extends StatelessWidget {
@@ -19,7 +20,10 @@ class GridChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () async {
+        await AudioService.instance.playClickSound();
+        onTap();
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -28,32 +32,41 @@ class GridChip extends StatelessWidget {
           border: Border.all(
               color: isSelected
                   ? AppColors.p1Color
-                  : Colors.white.withOpacity(0.1),
+                  : Colors.white.withOpacity(0.5),
               width: 2),
           color: isSelected
               ? AppColors.p1Color
-              : Colors.white.withOpacity(0.05),
+              : Colors.black.withOpacity(0.7),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                      color: AppColors.p1Color.withOpacity(0.3),
-                      blurRadius: 12,
-                      spreadRadius: -4)
+                      color: AppColors.p1Color.withOpacity(0.5),
+                      blurRadius: 15,
+                      spreadRadius: 0)
                 ]
-              : [],
+              : [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.4),
+                      blurRadius: 10,
+                      spreadRadius: 0),
+                  BoxShadow(
+                      color: Colors.white.withOpacity(0.15),
+                      blurRadius: 18,
+                      spreadRadius: 1)
+                ],
         ),
         child: Column(
           children: [
             Text("$size × $size",
                 style: TextStyle(
                     color:
-                        isSelected ? Colors.black : AppColors.mutedColor,
+                        isSelected ? Colors.black : Colors.white,
                     fontWeight: FontWeight.bold)),
             Text(label,
                 style: TextStyle(
                     color: isSelected
                         ? Colors.black.withOpacity(0.8)
-                        : AppColors.mutedColor.withOpacity(0.8),
+                        : Colors.white.withOpacity(0.9),
                     fontSize: 12)),
           ],
         ),
