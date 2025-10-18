@@ -66,10 +66,16 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgColor, // Black background like home page
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Column(
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/img/page_bg.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
           children: [
             // Spacer to push content to center
             const Spacer(),
@@ -122,6 +128,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
           ],
+        ),
         ),
       ),
     );

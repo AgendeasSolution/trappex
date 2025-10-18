@@ -40,12 +40,21 @@ class _HomeScreenState extends State<HomeScreen> {
   late TextEditingController _player1Controller;
   late TextEditingController _player2Controller;
   bool _isHowToPlayVisible = false;
+  bool _isSoundEnabled = true;
 
   @override
   void initState() {
     super.initState();
     _player1Controller = TextEditingController(text: widget.player1Name);
     _player2Controller = TextEditingController(text: widget.player2Name);
+    _loadSoundState();
+  }
+
+  Future<void> _loadSoundState() async {
+    _isSoundEnabled = AudioService.instance.isSoundEnabled;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -72,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: SafeArea(
                 child: Stack(
                   children: [
-                  SingleChildScrollView(
+                    SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
@@ -162,6 +171,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   if (_isHowToPlayVisible) _buildHowToPlayPopup(),
+                  // Sound toggle button in top-right corner - positioned last so it's on top
+                  Positioned(
+                    top: 2,
+                    right: 12,
+                    child: _buildSoundToggleButton(),
+                  ),
                 ],
               ),
             ),
@@ -170,6 +185,31 @@ class _HomeScreenState extends State<HomeScreen> {
           const AdBanner(),
         ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSoundToggleButton() {
+    return OutlinedButton(
+      onPressed: () async {
+        await AudioService.instance.toggleSound();
+        setState(() {
+          _isSoundEnabled = AudioService.instance.isSoundEnabled;
+        });
+      },
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.all(8),
+        side: BorderSide(color: AppColors.mutedColor.withOpacity(0.6)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        backgroundColor: AppColors.mutedColor.withOpacity(0.1),
+        minimumSize: const Size(40, 40),
+      ),
+      child: Icon(
+        _isSoundEnabled ? Icons.volume_up : Icons.volume_off,
+        color: _isSoundEnabled ? AppColors.p1Color : AppColors.mutedColor,
+        size: 18,
       ),
     );
   }
