@@ -51,7 +51,10 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   /// Starts a new game from the welcome screen settings
-  void _startNewGame() {
+  void _startNewGame() async {
+    // Show interstitial ad with 50% probability when opening game screen
+    await _showInterstitialAd();
+    
     setState(() {
       _isWelcomeVisible = false;
       _isGameOverVisible = false;
@@ -180,8 +183,8 @@ class _GameScreenState extends State<GameScreen> {
     // Play click sound
     await AudioService.instance.playClickSound();
     
-    // Show interstitial ad with 50% probability
-    await _showInterstitialAd();
+    // Show interstitial ad with 100% probability
+    await _showInterstitialAdAlways();
     
     // Navigate to home screen after ad (or immediately if ad not shown)
     setState(() {
@@ -195,8 +198,8 @@ class _GameScreenState extends State<GameScreen> {
     // Play click sound
     await AudioService.instance.playClickSound();
     
-    // Show interstitial ad with 50% probability
-    await _showInterstitialAd();
+    // Show interstitial ad with 100% probability
+    await _showInterstitialAdAlways();
     
     // Start new game after ad (or immediately if ad not shown)
     _startNewGame();
@@ -224,10 +227,26 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
   
-  /// Show interstitial ad with probability
+  /// Show interstitial ad with 50% probability
   Future<bool> _showInterstitialAd() async {
     try {
       return await InterstitialAdService.instance.showAdWithProbability(
+        onAdDismissed: () {
+          // Preload next ad after current one is dismissed
+          InterstitialAdService.instance.preloadAd();
+        },
+      );
+    } catch (e) {
+      // Preload next ad even if current one failed
+      InterstitialAdService.instance.preloadAd();
+      return false;
+    }
+  }
+  
+  /// Show interstitial ad with 100% probability
+  Future<bool> _showInterstitialAdAlways() async {
+    try {
+      return await InterstitialAdService.instance.showAdAlways(
         onAdDismissed: () {
           // Preload next ad after current one is dismissed
           InterstitialAdService.instance.preloadAd();
