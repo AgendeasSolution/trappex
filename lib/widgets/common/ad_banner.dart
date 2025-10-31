@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -32,9 +33,22 @@ class _AdBannerState extends State<AdBanner> {
   // Test ad unit ID for development
   static const String _testAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
-  // Production ad unit ID from the AdMob console
-  static const String _productionAdUnitId =
+  // Production ad unit IDs from the AdMob console
+  static const String _productionAdUnitIdAndroid =
       'ca-app-pub-3772142815301617/4431332777';
+  static const String _productionAdUnitIdIOS =
+      'ca-app-pub-3772142815301617/6786927901';
+
+  // Get the appropriate production ad unit ID based on platform
+  static String get _productionAdUnitId {
+    if (Platform.isIOS) {
+      return _productionAdUnitIdIOS;
+    } else if (Platform.isAndroid) {
+      return _productionAdUnitIdAndroid;
+    }
+    // Default to Android if platform cannot be determined
+    return _productionAdUnitIdAndroid;
+  }
 
   @override
   void initState() {
