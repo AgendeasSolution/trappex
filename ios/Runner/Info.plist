@@ -49,5 +49,9 @@
 	<string>ca-app-pub-3772142815301617~9496899146</string>
 	<key>UIRequiresFullScreen</key>
 	<true/>
+	<key>UIDeviceFamily</key>
+    <array>
+        <integer>1</integer>
+    </array>
 </dict>
 </plist>
