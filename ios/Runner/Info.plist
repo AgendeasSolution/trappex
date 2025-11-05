@@ -53,5 +53,25 @@
     <array>
         <integer>1</integer>
     </array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fb850020130821281</string>
+			</array>
+		</dict>
+	</array>
+	<key>FacebookAppID</key>
+	<string>850020130821281</string>
+	<key>FacebookDisplayName</key>
+	<string>Trappex</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>fbapi</string>
+		<string>fb-messenger-api</string>
+		<string>fbauth2</string>
+		<string>fbshareextension</string>
+	</array>
 </dict>
 </plist>
