@@ -40,34 +40,52 @@ class GameService {
         if (edge == 0) return false;
       }
     }
+    // When all edges are filled, do a final check to claim any missed boxes
+    checkAllBoxes();
     return true;
   }
 
   /// Applies a move to the board and checks for completed boxes
   int applyMove(GameEdge move, int player) {
-    int claimed = 0;
+    // Validate and apply the move - ensure wall is assigned to correct player
     if (move.type == 'h') {
       if (_horizontalEdges[move.i][move.j] != 0) {
         return 0; // Prevent overwriting
       }
-      _horizontalEdges[move.i][move.j] = player;
+      _horizontalEdges[move.i][move.j] = player; // Assign to current player
     } else {
       if (_verticalEdges[move.i][move.j] != 0) {
         return 0; // Prevent overwriting
       }
-      _verticalEdges[move.i][move.j] = player;
+      _verticalEdges[move.i][move.j] = player; // Assign to current player
     }
 
-    // After placing a wall, check both adjacent boxes to see if they are now complete
+    // After placing a wall, check all boxes to see if any are now complete
+    // This ensures we catch all completed boxes, not just adjacent ones
+    return _checkAndClaimBoxes(player);
+  }
+
+  /// Checks all boxes on the board and claims any that are complete
+  /// Returns the number of boxes claimed by the given player
+  int _checkAndClaimBoxes(int player) {
+    int claimed = 0;
+    
+    // Check all boxes to ensure we don't miss any completed boxes
     for (int r = 0; r < _n; r++) {
       for (int c = 0; c < _n; c++) {
-        if (_boxes[r][c] == 0 &&
-            _horizontalEdges[r][c] != 0 &&
-            _horizontalEdges[r + 1][c] != 0 &&
-            _verticalEdges[r][c] != 0 &&
-            _verticalEdges[r][c + 1] != 0) {
-          _boxes[r][c] = player;
-          claimed++;
+        // Only check unclaimed boxes
+        if (_boxes[r][c] == 0) {
+          // Check if all 4 walls are placed
+          bool topWall = _horizontalEdges[r][c] != 0;
+          bool bottomWall = _horizontalEdges[r + 1][c] != 0;
+          bool leftWall = _verticalEdges[r][c] != 0;
+          bool rightWall = _verticalEdges[r][c + 1] != 0;
+          
+          if (topWall && bottomWall && leftWall && rightWall) {
+            // Box is complete - assign to the current player (who placed the completing wall)
+            _boxes[r][c] = player;
+            claimed++;
+          }
         }
       }
     }
@@ -78,11 +96,63 @@ class GameService {
     return claimed;
   }
 
+  /// Comprehensive check for any missed boxes - should be called periodically
+  /// Returns the number of boxes that were claimed
+  int checkAllBoxes() {
+    int totalClaimed = 0;
+    
+    // Check all boxes and determine ownership based on who owns the last wall placed
+    // For already completed boxes with all walls, assign to the player who owns most walls
+    for (int r = 0; r < _n; r++) {
+      for (int c = 0; c < _n; c++) {
+        if (_boxes[r][c] == 0) {
+          bool topWall = _horizontalEdges[r][c] != 0;
+          bool bottomWall = _horizontalEdges[r + 1][c] != 0;
+          bool leftWall = _verticalEdges[r][c] != 0;
+          bool rightWall = _verticalEdges[r][c + 1] != 0;
+          
+          if (topWall && bottomWall && leftWall && rightWall) {
+            // Box is complete but unclaimed - determine ownership
+            // Count walls owned by each player
+            int player1Walls = 0;
+            int player2Walls = 0;
+            
+            if (_horizontalEdges[r][c] == 1) player1Walls++;
+            else if (_horizontalEdges[r][c] == 2) player2Walls++;
+            
+            if (_horizontalEdges[r + 1][c] == 1) player1Walls++;
+            else if (_horizontalEdges[r + 1][c] == 2) player2Walls++;
+            
+            if (_verticalEdges[r][c] == 1) player1Walls++;
+            else if (_verticalEdges[r][c] == 2) player2Walls++;
+            
+            if (_verticalEdges[r][c + 1] == 1) player1Walls++;
+            else if (_verticalEdges[r][c + 1] == 2) player2Walls++;
+            
+            // Assign to player with most walls (or player 1 if tie)
+            // In normal gameplay, the last wall placed completes the box, so we use majority
+            int owner = player1Walls >= player2Walls ? 1 : 2;
+            _boxes[r][c] = owner;
+            _scores[owner] = (_scores[owner] ?? 0) + 1;
+            totalClaimed++;
+          }
+        }
+      }
+    }
+    
+    return totalClaimed;
+  }
+
   /// Handles the player's move
   int handlePlayerMove(GameEdge move) {
     if (!isValidMove(move)) return 0;
 
-    final claimed = applyMove(move, _turn);
+    // Store the current turn to ensure wall is assigned to correct player
+    final currentPlayer = _turn;
+    final claimed = applyMove(move, currentPlayer);
+    
+    // After move, do a comprehensive check to catch any missed boxes
+    checkAllBoxes();
     
     if (claimed == 0) {
       _turn = _turn == 1 ? 2 : 1;
@@ -98,10 +168,15 @@ class GameService {
     
     do {
       final move = findBestAiMove();
-      final claimed = applyMove(move, 2);
+      final claimed = applyMove(move, 2); // Ensure AI (player 2) is assigned correctly
       results.add(claimed);
 
+      // Check for any missed boxes after AI move
+      checkAllBoxes();
+
       if (allEdgesFilled()) {
+        // Final check to ensure all boxes are claimed before ending
+        checkAllBoxes();
         return results;
       }
 
