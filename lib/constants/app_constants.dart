@@ -12,6 +12,9 @@ class AppConstants {
   static const int classicGridSize = 5;
   static const int hardGridSize = 6;
   
+  // External links
+  static const String webGamesUrl = 'https://freegametoplay.com';
+
   // UI constants
   static const double edgeThickness = 8.0;
   static const double touchTolerance = 15.0;

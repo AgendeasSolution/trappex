@@ -149,7 +149,7 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       child: Row(
         children: [
           IconButton(

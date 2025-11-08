@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import '../services/audio_service.dart';
@@ -167,45 +168,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () async {
-                                await AudioService.instance.playClickSound();
-                                if (!mounted) return;
-                                Navigator.of(context)
-                                    .push(OtherGamesScreen.createRoute());
-                              },
-                              style: OutlinedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14),
-                                side: BorderSide(
-                                  color: AppColors.p1Color.withOpacity(0.8),
-                                  width: 1.5,
-                                ),
-                                backgroundColor:
-                                    AppColors.mutedColor.withOpacity(0.1),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              icon: Icon(
-                                Icons.grid_view_rounded,
-                                color: AppColors.p1Color,
-                              ),
-                              label: Text(
-                                "More Games from FGTP Labs",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: AppColors.p1Color,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 160),
                         ],
                       ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                      child: _buildExploreMoreSection(),
                     ),
                   ),
                   if (_isHowToPlayVisible) _buildHowToPlayPopup(),
@@ -560,5 +532,123 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildExploreMoreSection() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.info_outline,
+              color: AppColors.p1Color,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              "Explore More Games",
+              style: TextStyle(
+                fontSize: 16,
+                color: AppColors.p1Color,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _buildGamesLinksRow(),
+      ],
+    );
+  }
+
+  Widget _buildGamesLinksRow() {
+    return Row(
+      children: [
+        Expanded(child: _buildMobileGamesButton()),
+        const SizedBox(width: 12),
+        Expanded(child: _buildWebGamesButton()),
+      ],
+    );
+  }
+
+  Widget _buildMobileGamesButton() {
+    return OutlinedButton.icon(
+      onPressed: () async {
+        await AudioService.instance.playClickSound();
+        if (!mounted) return;
+        Navigator.of(context).push(OtherGamesScreen.createRoute());
+      },
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        side: BorderSide(
+          color: AppColors.p1Color.withOpacity(0.8),
+          width: 1.5,
+        ),
+        backgroundColor: AppColors.mutedColor.withOpacity(0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      icon: Icon(
+        Icons.phone_iphone,
+        color: AppColors.p1Color,
+      ),
+      label: Text(
+        "Mobile Games",
+        style: TextStyle(
+          fontSize: 16,
+          color: AppColors.p1Color,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWebGamesButton() {
+    return OutlinedButton.icon(
+      onPressed: () async {
+        await AudioService.instance.playClickSound();
+        await _launchWebGames();
+      },
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        side: BorderSide(
+          color: AppColors.p1Color.withOpacity(0.8),
+          width: 1.5,
+        ),
+        backgroundColor: AppColors.mutedColor.withOpacity(0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      icon: Icon(
+        Icons.language,
+        color: AppColors.p1Color,
+      ),
+      label: Text(
+        "Web Games",
+        style: TextStyle(
+          fontSize: 16,
+          color: AppColors.p1Color,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchWebGames() async {
+    final uri = Uri.parse(AppConstants.webGamesUrl);
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Could not open freegametoplay.com'),
+          backgroundColor: Colors.black.withOpacity(0.85),
+        ),
+      );
+    }
   }
 }
