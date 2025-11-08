@@ -46,64 +46,77 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
             children: [
               _buildHeader(context),
               Expanded(
-                child: FutureBuilder<List<OtherGame>>(
-                  future: _gamesFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.p1Color,
-                          ),
-                        ),
-                      );
-                    }
-
-                    if (snapshot.hasError) {
-                      return _buildErrorState(snapshot.error.toString());
-                    }
-
-                    final games = snapshot.data ?? [];
-                    if (games.isEmpty) {
-                      return _buildEmptyState();
-                    }
-
-                    return LayoutBuilder(
-                      builder: (context, constraints) {
-                        final crossAxisCount = _calculateCrossAxisCount(
-                          constraints.maxWidth,
-                        );
-                        final childAspectRatio = _calculateChildAspectRatio(
-                          constraints.maxWidth,
-                        );
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: GridView.builder(
-                            padding: const EdgeInsets.only(bottom: 32),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  mainAxisSpacing: 30,
-                                  crossAxisSpacing: 18,
-                                  childAspectRatio: childAspectRatio,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: FutureBuilder<List<OtherGame>>(
+                        future: _gamesFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.p1Color,
                                 ),
-                            itemCount: games.length,
-                            itemBuilder: (context, index) {
-                              final game = games[index];
-                              return _OtherGameCard(
-                                game: game,
-                                onPlay: () => _launchGame(game),
+                              ),
+                            );
+                          }
+
+                          if (snapshot.hasError) {
+                            return _buildErrorState(snapshot.error.toString());
+                          }
+
+                          final games = snapshot.data ?? [];
+                          if (games.isEmpty) {
+                            return _buildEmptyState();
+                          }
+
+                          return LayoutBuilder(
+                            builder: (context, constraints) {
+                              final crossAxisCount = _calculateCrossAxisCount(
+                                constraints.maxWidth,
+                              );
+                              final childAspectRatio =
+                                  _calculateChildAspectRatio(
+                                    constraints.maxWidth,
+                                  );
+
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                child: GridView.builder(
+                                  padding: const EdgeInsets.only(bottom: 120),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: crossAxisCount,
+                                        mainAxisSpacing: 30,
+                                        crossAxisSpacing: 18,
+                                        childAspectRatio: childAspectRatio,
+                                      ),
+                                  itemCount: games.length,
+                                  itemBuilder: (context, index) {
+                                    final game = games[index];
+                                    return _OtherGameCard(
+                                      game: game,
+                                      onPlay: () => _launchGame(game),
+                                    );
+                                  },
+                                ),
                               );
                             },
-                          ),
-                        );
-                      },
-                    );
-                  },
+                          );
+                        },
+                      ),
+                    ),
+                    const Align(
+                      alignment: Alignment.bottomCenter,
+                      child: AdBanner(margin: EdgeInsets.zero),
+                    ),
+                  ],
                 ),
               ),
-              const AdBanner(),
             ],
           ),
         ),

@@ -9,6 +9,7 @@ class AdBanner extends StatefulWidget {
   final String? adUnitId;
   final VoidCallback? onAdLoaded;
   final VoidCallback? onAdFailedToLoad;
+  final EdgeInsetsGeometry margin;
 
   const AdBanner({
     super.key,
@@ -16,6 +17,12 @@ class AdBanner extends StatefulWidget {
     this.adUnitId,
     this.onAdLoaded,
     this.onAdFailedToLoad,
+    this.margin = const EdgeInsets.only(
+      left: 8.0,
+      right: 8.0,
+      top: 4.0,
+      bottom: 16.0,
+    ),
   });
 
   @override
@@ -54,7 +61,7 @@ class _AdBannerState extends State<AdBanner> {
   void initState() {
     super.initState();
     _initializeAndLoadAd();
-    
+
     // Set up periodic refresh to keep ads loading
     _setupPeriodicRefresh();
   }
@@ -73,14 +80,14 @@ class _AdBannerState extends State<AdBanner> {
       _bannerAd!.dispose();
       _bannerAd = null;
     }
-    
+
     setState(() {
       _isAdLoaded = false;
       _isAdLoading = false;
       _hasAdError = false;
       _retryCount = 0; // Reset retry count for fresh attempt
     });
-    
+
     _loadBannerAd();
   }
 
@@ -150,12 +157,12 @@ class _AdBannerState extends State<AdBanner> {
                 _hasAdError = true;
               });
               ad.dispose();
-              
+
               // Only retry for errors other than "No Fill"
               if (error.code != 3) {
                 _scheduleRetry();
               }
-              
+
               widget.onAdFailedToLoad?.call();
             }
           },
@@ -177,18 +184,18 @@ class _AdBannerState extends State<AdBanner> {
 
   void _scheduleRetry() {
     _retryTimer?.cancel();
-    
+
     // Increase retry count
     _retryCount++;
-    
+
     // Don't retry more than 5 times
     if (_retryCount > 5) {
       return;
     }
-    
+
     // Exponential backoff: 2s, 4s, 8s, 16s, 32s
     final retryDelay = Duration(seconds: 2 * _retryCount);
-    
+
     _retryTimer = Timer(retryDelay, () {
       if (mounted && !_isAdLoaded) {
         _retryLoadAd();
@@ -201,12 +208,12 @@ class _AdBannerState extends State<AdBanner> {
       _bannerAd!.dispose();
       _bannerAd = null;
     }
-    
+
     setState(() {
       _isAdLoading = false;
       _hasAdError = false;
     });
-    
+
     _loadBannerAd();
   }
 
@@ -215,12 +222,7 @@ class _AdBannerState extends State<AdBanner> {
     return Container(
       width: double.infinity,
       height: widget.height ?? 60.0, // Increased height for better ad display
-      margin: const EdgeInsets.only(
-        left: 8.0,
-        right: 8.0,
-        top: 4.0,
-        bottom: 16.0, // Added extra bottom margin for better spacing
-      ),
+      margin: widget.margin,
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(4.0), // Slight rounded corners
@@ -238,7 +240,10 @@ class _AdBannerState extends State<AdBanner> {
       return Container(
         width: double.infinity,
         height: widget.height ?? 60.0,
-        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0), // Inner padding
+        padding: const EdgeInsets.symmetric(
+          horizontal: 4.0,
+          vertical: 2.0,
+        ), // Inner padding
         child: ClipRRect(
           borderRadius: BorderRadius.circular(4.0),
           child: AdWidget(ad: _bannerAd!),
