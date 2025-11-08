@@ -177,15 +177,51 @@ class _HomeScreenState extends State<HomeScreen> {
                     alignment: Alignment.bottomCenter,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                      child: _buildExploreMoreSection(),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: AppColors.p1Color,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Explore More Games",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.p1Color,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _buildGamesLinksRow(),
+                        ],
+                      ),
                     ),
                   ),
                   if (_isHowToPlayVisible) _buildHowToPlayPopup(),
                   // Sound toggle button in top-right corner - positioned last so it's on top
                   Positioned(
                     top: 2,
+                    left: 12,
                     right: 12,
-                    child: _buildSoundToggleButton(),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _isHowToPlayVisible
+                          ? const SizedBox(width: 40, height: 40)
+                          : _buildHowToPlayIconButton(),
+                      _isHowToPlayVisible
+                          ? const SizedBox(width: 40, height: 40)
+                          : _buildSoundToggleButton(),
+                    ],
+                  ),
                   ),
                 ],
               ),
@@ -224,51 +260,78 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCompactHowToPlayButton(BuildContext context) {
-    return OutlinedButton.icon(
+  Widget _buildHowToPlayIconButton() {
+    return OutlinedButton(
       onPressed: () async {
         await AudioService.instance.playClickSound();
         setState(() => _isHowToPlayVisible = true);
       },
-      icon: const Icon(Icons.help_outline, color: AppColors.mutedColor, size: 18),
-      label: const Text(
-        "How to Play",
-        style: TextStyle(
-          fontSize: 14,
-          color: AppColors.mutedColor,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
       style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: const EdgeInsets.all(8),
         side: BorderSide(color: AppColors.mutedColor.withOpacity(0.6)),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
         backgroundColor: AppColors.mutedColor.withOpacity(0.1),
+        minimumSize: const Size(40, 40),
+      ),
+      child: Icon(
+        Icons.help_outline,
+        color: _isSoundEnabled ? AppColors.p1Color : AppColors.mutedColor,
+        size: 18,
       ),
     );
   }
 
   Widget _buildHowToPlayPopup() {
     return PopupOverlay(
+      onDismiss: () {
+        AudioService.instance.playClickSound();
+        setState(() => _isHowToPlayVisible = false);
+      },
       child: Container(
         constraints: const BoxConstraints(maxHeight: 500),
         child: SingleChildScrollView(
+          padding: EdgeInsets.zero,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "How to Play",
-                style: TextStyle(
-                  fontSize: 28,
-                  color: AppColors.p1Color,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      "How to Play",
+                      style: TextStyle(
+                        fontSize: 28,
+                        color: AppColors.p1Color,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  OutlinedButton(
+                    onPressed: () async {
+                      await AudioService.instance.playClickSound();
+                      setState(() => _isHowToPlayVisible = false);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(36, 36),
+                      side: BorderSide(color: Colors.white24),
+                      backgroundColor: Colors.white.withOpacity(0.08),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white70,
+                      size: 18,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               const Text(
                 "Objective:",
                 style: TextStyle(
@@ -305,30 +368,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 6),
               _buildRuleItem("The player with the most claimed squares wins!"),
-              const SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await AudioService.instance.playClickSound();
-                    setState(() => _isHowToPlayVisible = false);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.p1Color,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    "Got it!",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -485,19 +525,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildGridSelector(BuildContext context) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Difficulty",
-              style: TextStyle(
-                color: AppColors.mutedColor,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            "Difficulty",
+            style: TextStyle(
+              color: AppColors.mutedColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
-            _buildCompactHowToPlayButton(context),
-          ],
+          ),
         ),
         const SizedBox(height: 16),
         Row(
@@ -530,35 +567,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-      ],
-    );
-  }
-
-  Widget _buildExploreMoreSection() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.info_outline,
-              color: AppColors.p1Color,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              "Explore More Games",
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.p1Color,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _buildGamesLinksRow(),
       ],
     );
   }

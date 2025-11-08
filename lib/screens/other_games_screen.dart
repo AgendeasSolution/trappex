@@ -9,6 +9,7 @@ import '../constants/app_constants.dart';
 import '../models/other_game.dart';
 import '../services/other_games_service.dart';
 import '../widgets/common/ad_banner.dart';
+import '../widgets/game/exit_button.dart';
 
 class OtherGamesScreen extends StatefulWidget {
   const OtherGamesScreen({super.key});
@@ -64,7 +65,11 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
                           }
 
                           if (snapshot.hasError) {
-                            return _buildErrorState(snapshot.error.toString());
+                            final error = snapshot.error;
+                            if (error is SocketException) {
+                              return _buildOfflineState();
+                            }
+                            return _buildErrorState(error?.toString() ?? 'Something went wrong.');
                           }
 
                           final games = snapshot.data ?? [];
@@ -84,14 +89,14 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
 
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
+                                  horizontal: 12,
                                 ),
                                 child: GridView.builder(
                                   padding: const EdgeInsets.only(bottom: 120),
                                   gridDelegate:
                                       SliverGridDelegateWithFixedCrossAxisCount(
                                         crossAxisCount: crossAxisCount,
-                                        mainAxisSpacing: 30,
+                                        mainAxisSpacing: 16,
                                         crossAxisSpacing: 18,
                                         childAspectRatio: childAspectRatio,
                                       ),
@@ -139,41 +144,36 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
       return 0.7;
     }
     if (maxWidth >= 900) {
-      return 0.65;
+      return 0.68;
     }
     if (maxWidth >= 600) {
-      return 0.62;
+      return 0.66;
     }
-    return 0.6;
+    return 0.64;
   }
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
       child: Row(
         children: [
-          IconButton(
+          ExitButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
           ),
-          const SizedBox(width: 4),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
+          Expanded(
+            child: Center(
+              child: Text(
                 'FGTP Labs',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Colors.white.withOpacity(0.92),
+                  letterSpacing: 0.4,
                 ),
               ),
-              Text(
-                'Explore more games created by our team',
-                style: TextStyle(fontSize: 14, color: AppColors.mutedColor),
-              ),
-            ],
+            ),
           ),
+          const SizedBox(width: 44),
         ],
       ),
     );
@@ -233,9 +233,9 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(color: AppColors.mutedColor, fontSize: 14),
+            const Text(
+              'Something went wrong. Please try again in a moment.',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -262,6 +262,69 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
                 'Retry',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOfflineState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.wifi_off,
+              size: 56,
+              color: AppColors.mutedColor.withOpacity(0.8),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'No internet connection',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Please reconnect to the internet and refresh to explore our other games.',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _gamesFuture = _service.fetchOtherGames(
+                    excludeTitle: AppConstants.appName,
+                  );
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.p1Color,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Refresh',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  )),
             ),
           ],
         ),
@@ -364,13 +427,11 @@ class _OtherGameCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: _SquareArtwork(imageUrl: game.imageUrl),
-                  ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: _SquareArtwork(imageUrl: game.imageUrl),
                 ),
               ),
               const SizedBox(height: 12),
@@ -383,21 +444,23 @@ class _OtherGameCard extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    height: 1.2,
                   ),
                 ),
               ),
               const SizedBox(height: 12),
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
                 child: SizedBox(
-                  height: 48,
+                  height: 40,
                   child: ElevatedButton(
                     onPressed: onPlay,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.p1Color,
                       foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -455,7 +518,7 @@ class _SquareArtwork extends StatelessWidget {
               )
             : Image.network(
                 trimmedUrl,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => Container(
                   color: Colors.white.withOpacity(0.08),
                   child: const Icon(

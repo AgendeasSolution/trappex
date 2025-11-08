@@ -300,16 +300,22 @@ class _GameScreenState extends State<GameScreen> {
       // Make the UI responsive
       bool isMobile = constraints.maxWidth < 768;
       double topPadding = isMobile ? 8 : 20;
+      double horizontalPadding = isMobile ? 12 : 24;
 
       return Stack(
         children: [
           // Header Row with Exit Button and Game Name
           Positioned(
-            top: topPadding,
+            top: 0,
             left: 0,
             right: 0,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: topPadding),
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                0,
+                horizontalPadding,
+                0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
