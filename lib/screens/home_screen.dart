@@ -4,6 +4,7 @@ import '../constants/app_constants.dart';
 import '../services/audio_service.dart';
 import '../widgets/home/game_mode_chip.dart';
 import '../widgets/home/grid_chip.dart';
+import 'other_games_screen.dart';
 import '../widgets/common/popup_overlay.dart';
 import '../widgets/common/ad_banner.dart';
 
@@ -166,6 +167,43 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                await AudioService.instance.playClickSound();
+                                if (!mounted) return;
+                                Navigator.of(context)
+                                    .push(OtherGamesScreen.createRoute());
+                              },
+                              style: OutlinedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                                side: BorderSide(
+                                  color: AppColors.p1Color.withOpacity(0.8),
+                                  width: 1.5,
+                                ),
+                                backgroundColor:
+                                    AppColors.mutedColor.withOpacity(0.1),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              icon: Icon(
+                                Icons.grid_view_rounded,
+                                color: AppColors.p1Color,
+                              ),
+                              label: Text(
+                                "More Games from FGTP Labs",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.p1Color,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
                         ],
                       ),
                     ),
