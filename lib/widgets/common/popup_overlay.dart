@@ -25,8 +25,11 @@ class PopupOverlay extends StatelessWidget {
           Positioned.fill(
             child: GestureDetector(
               onTap: onDismiss,
-              child: Container(
-                color: Colors.black.withOpacity(0.75),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
+                child: Container(
+                  color: Colors.black.withOpacity(0.3),
+                ),
               ),
             ),
           ),

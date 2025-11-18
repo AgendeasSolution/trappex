@@ -48,12 +48,22 @@ class _SplashScreenState extends State<SplashScreen>
       _animationController.forward();
     });
     
-    // Navigate to game screen after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
+    // Navigate to game screen after shorter delay for faster startup
+    // Reduced from 3 seconds to 2 seconds for better UX
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const GameScreen()),
-        );
+        try {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const GameScreen()),
+          );
+        } catch (e) {
+          // Handle navigation errors gracefully
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const GameScreen()),
+            );
+          }
+        }
       }
     });
   }

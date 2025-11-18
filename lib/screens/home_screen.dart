@@ -46,9 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
   late TextEditingController _player2Controller;
   bool _isHowToPlayVisible = false;
   bool _isSoundEnabled = true;
-  bool _isTestGameOverVisible = false;
-  String _testGameOverTitle = "";
-  String _testGameOverMessage = "";
 
   @override
   void initState() {
@@ -84,102 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       setState(() {});
     }
-  }
-
-  /// Show test game over popup (win scenario)
-  void _showTestGameOverWin() async {
-    await AudioService.instance.playWinSound();
-    setState(() {
-      _testGameOverTitle = "Player Wins! 🎉";
-      _testGameOverMessage = "Congratulations! You won 5 to 3.";
-      _isTestGameOverVisible = true;
-    });
-  }
-
-  /// Show test game over popup (lose scenario)
-  void _showTestGameOverLose() async {
-    await AudioService.instance.playLoseSound();
-    setState(() {
-      _testGameOverTitle = "Computer Wins! 🤖";
-      _testGameOverMessage = "The computer won 4 to 2.";
-      _isTestGameOverVisible = true;
-    });
-  }
-
-  /// Show test update popup
-  void _showTestUpdatePopup() {
-    final updateService = UpdateService();
-    final storeUrl = updateService.getStoreUrl();
-    UpdateBottomSheet.show(context, storeUrl);
-  }
-
-  /// Show test menu dialog
-  void _showTestMenu() async {
-    await AudioService.instance.playClickSound();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.homeCardBg,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppColors.homeAccent, width: 2),
-        ),
-        title: Text(
-          "Test Popups",
-          style: TextStyle(
-            color: AppColors.p1Color,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.emoji_events, color: AppColors.p1Color),
-              title: Text(
-                "Game Over (Win)",
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _showTestGameOverWin();
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.sentiment_dissatisfied, color: AppColors.p2Color),
-              title: Text(
-                "Game Over (Lose)",
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _showTestGameOverLose();
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.system_update, color: AppColors.homeAccent),
-              title: Text(
-                "App Update",
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _showTestUpdatePopup();
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              "Close",
-              style: TextStyle(color: AppColors.mutedColor),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -263,8 +164,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             _buildGameModeSelector(context),
                             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12.0, 14.0, 16.0)),
                             
-                            // Grid Size Selector
+                            // Grid Size Selector (Difficulty)
                             _buildGridSelector(context),
+                            
+                            // Player Name Fields (only shown in 1v1 mode)
+                            if (widget.gameMode == AppConstants.oneVsOneMode) ...[
+                              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 16.0, 18.0, 20.0)),
+                              _buildPlayerNameFields(context),
+                            ],
                             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 16.0, 18.0, 20.0)),
                             
                             // Play Button
@@ -319,7 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 24.0, 27.0, 30.0)),
                             
-                            // How to Play, Sound, and Test buttons at top of Explore More Games section
+                            // How to Play and Sound buttons at top of Explore More Games section
                             if (!_isHowToPlayVisible)
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -327,8 +234,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   _buildHowToPlayIconButton(context),
                                   SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, 8, 9, 10)),
                                   _buildSoundToggleButton(context),
-                                  SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, 8, 9, 10)),
-                                  _buildTestButton(context),
                                 ],
                               ),
                             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10.0, 11.0, 12.0)),
@@ -364,7 +269,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     if (_isHowToPlayVisible) _buildHowToPlayPopup(context),
-                    if (_isTestGameOverVisible) _buildTestGameOverPopup(context),
                     // Ad Banner - transparent overlay at bottom
                     Positioned(
                       bottom: 0,
@@ -451,39 +355,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTestButton(BuildContext context) {
-    final iconSize = ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18);
-    final buttonSize = ResponsiveUtils.getResponsiveValue(context, 36, 38, 40);
-    final padding = ResponsiveUtils.getResponsiveValue(context, 6, 7, 8);
-    final borderRadius = ResponsiveUtils.getResponsiveValue(context, 6, 7, 8);
-    
-    return OutlinedButton(
-      onPressed: () => _showTestMenu(),
-      style: OutlinedButton.styleFrom(
-        padding: EdgeInsets.all(padding),
-        side: BorderSide(color: AppColors.mutedColor.withOpacity(0.6)),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(borderRadius),
-        ),
-        backgroundColor: AppColors.mutedColor.withOpacity(0.1),
-        minimumSize: Size(buttonSize, buttonSize),
-      ),
-      child: Icon(
-        Icons.bug_report,
-        color: AppColors.p2Color,
-        size: iconSize,
-      ),
-    );
-  }
-
-
   Widget _buildHowToPlayPopup(BuildContext context) {
     final maxHeight = ResponsiveUtils.getResponsiveValue(context, 400, 450, 500);
     final reducedPadding = ResponsiveUtils.getResponsiveValue(context, 8, 10, 12);
     final topMargin = ResponsiveUtils.getResponsiveValue(context, 2, 3, 4);
     
     return PopupOverlay(
-      showBackdrop: false,
+      showBackdrop: true,
+      onDismiss: () async {
+        await AudioService.instance.playClickSound();
+        setState(() => _isHowToPlayVisible = false);
+      },
       padding: EdgeInsets.all(reducedPadding),
       child: Stack(
         children: [
@@ -606,110 +488,31 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTestGameOverPopup(BuildContext context) {
-    final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
-    
-    return PopupOverlay(
-      onDismiss: () {
-        AudioService.instance.playClickSound();
-        setState(() => _isTestGameOverVisible = false);
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _testGameOverTitle,
-              style: TextStyle(
-                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 24, 26, 28),
-                color: AppColors.p1Color,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12, 14, 16)),
-            Text(
-              _testGameOverMessage,
-              style: TextStyle(
-                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
-                color: AppColors.mutedColor,
-                height: 1.6,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 20, 22, 24)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      await AudioService.instance.playClickSound();
-                      setState(() => _isTestGameOverVisible = false);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.p1Color,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: ResponsiveUtils.getResponsiveValue(context, 20, 22, 24),
-                        vertical: ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      "Close",
-                      style: TextStyle(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
-                        color: Colors.black,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildGameModeSelector(BuildContext context) {
     final spacing = ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12);
     
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: GameModeChip(
-                mode: AppConstants.vsComputerMode,
-                label: "vs Computer",
-                icon: Icons.computer,
-                isSelected: widget.gameMode == AppConstants.vsComputerMode,
-                onTap: () => widget.onGameModeChanged(AppConstants.vsComputerMode),
-              ),
-            ),
-            SizedBox(width: spacing),
-            Expanded(
-              child: GameModeChip(
-                mode: AppConstants.oneVsOneMode,
-                label: "1 vs 1",
-                icon: Icons.people,
-                isSelected: widget.gameMode == AppConstants.oneVsOneMode,
-                onTap: () => widget.onGameModeChanged(AppConstants.oneVsOneMode),
-              ),
-            ),
-          ],
+        Expanded(
+          child: GameModeChip(
+            mode: AppConstants.vsComputerMode,
+            label: "vs Computer",
+            icon: Icons.computer,
+            isSelected: widget.gameMode == AppConstants.vsComputerMode,
+            onTap: () => widget.onGameModeChanged(AppConstants.vsComputerMode),
+          ),
         ),
-        if (widget.gameMode == AppConstants.oneVsOneMode) ...[
-          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 16, 18, 20)),
-          _buildPlayerNameFields(context),
-        ],
+        SizedBox(width: spacing),
+        Expanded(
+          child: GameModeChip(
+            mode: AppConstants.oneVsOneMode,
+            label: "1 vs 1",
+            icon: Icons.people,
+            isSelected: widget.gameMode == AppConstants.oneVsOneMode,
+            onTap: () => widget.onGameModeChanged(AppConstants.oneVsOneMode),
+          ),
+        ),
       ],
     );
   }

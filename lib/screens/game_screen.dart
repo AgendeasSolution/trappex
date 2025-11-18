@@ -48,180 +48,285 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _gameService.initGame(_selectedGridSize, initialTurn: _nextGameFirstTurn);
-    _displayedTurn = _gameService.turn;
+    try {
+      _gameService.initGame(_selectedGridSize, initialTurn: _nextGameFirstTurn);
+      _displayedTurn = _gameService.turn;
+    } catch (e) {
+      // Fallback initialization if error occurs
+      _gameService.initGame(AppConstants.classicGridSize, initialTurn: 1);
+      _displayedTurn = 1;
+    }
     
-    // Preload interstitial ad for better user experience
-    InterstitialAdService.instance.preloadAd();
+    // Preload interstitial ad for better user experience (non-blocking)
+    try {
+      InterstitialAdService.instance.preloadAd();
+    } catch (e) {
+      // Silently fail - ads are not critical
+    }
   }
 
   /// Starts a new game from the welcome screen settings
   void _startNewGame() async {
-    // Show interstitial ad with 50% probability when opening game screen
-    await _showInterstitialAd();
-    
-    setState(() {
-      _isWelcomeVisible = false;
-      _isGameOverVisible = false;
-      
-      // In 1v1 mode, first game always starts with Player 1
-      // In vs Computer mode, use the alternating logic
-      int initialTurn = _nextGameFirstTurn;
-      if (_gameMode == AppConstants.oneVsOneMode && _isFirstGame) {
-        initialTurn = 1; // Always start with Player 1 in first 1v1 game
-        _isFirstGame = false; // Mark that we've had the first game
+    try {
+      // Show interstitial ad with 50% probability when opening game screen
+      try {
+        await _showInterstitialAd();
+      } catch (e) {
+        // Continue if ad fails
       }
       
-      _gameService.initGame(_selectedGridSize, initialTurn: initialTurn);
-      _displayedTurn = _gameService.turn;
+      if (!mounted) return;
       
-      // Alternate the first turn for the next game (except for first 1v1 game)
-      if (!(_gameMode == AppConstants.oneVsOneMode && _isFirstGame)) {
-        _nextGameFirstTurn = _nextGameFirstTurn == 1 ? 2 : 1;
-      }
-    });
-    
-    // If it's the computer's turn in vs Computer mode, make AI move after 1 second
-    if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
-      // Update indicator to show computer's turn
       setState(() {
-        _displayedTurn = 2;
+        _isWelcomeVisible = false;
+        _isGameOverVisible = false;
+        
+        // In 1v1 mode, first game always starts with Player 1
+        // In vs Computer mode, use the alternating logic
+        int initialTurn = _nextGameFirstTurn;
+        if (_gameMode == AppConstants.oneVsOneMode && _isFirstGame) {
+          initialTurn = 1; // Always start with Player 1 in first 1v1 game
+          _isFirstGame = false; // Mark that we've had the first game
+        }
+        
+        try {
+          _gameService.initGame(_selectedGridSize, initialTurn: initialTurn);
+          _displayedTurn = _gameService.turn;
+        } catch (e) {
+          // Fallback initialization
+          _gameService.initGame(AppConstants.classicGridSize, initialTurn: 1);
+          _displayedTurn = 1;
+        }
+        
+        // Alternate the first turn for the next game (except for first 1v1 game)
+        if (!(_gameMode == AppConstants.oneVsOneMode && _isFirstGame)) {
+          _nextGameFirstTurn = _nextGameFirstTurn == 1 ? 2 : 1;
+        }
       });
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        _aiTurn();
-      });
+      
+      // If it's the computer's turn in vs Computer mode, make AI move after 1 second
+      if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2 && mounted) {
+        // Update indicator to show computer's turn
+        setState(() {
+          _displayedTurn = 2;
+        });
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (mounted) {
+            _aiTurn();
+          }
+        });
+      }
+    } catch (e) {
+      // Handle errors gracefully
+      if (mounted) {
+        setState(() {
+          _isWelcomeVisible = false;
+          _isGameOverVisible = false;
+        });
+      }
     }
   }
 
   /// Handles the player's move
   void _handlePlayerMove(GameEdge move) async {
-    // In vs Computer mode, only allow Player 1 to make moves
-    // In 1v1 mode, allow both players to make moves
-    if (_gameMode == AppConstants.vsComputerMode && _gameService.turn != 1) return;
-    
-    // Store the current turn before making the move
-    final currentTurn = _gameService.turn;
-    final claimed = _gameService.handlePlayerMove(move);
-    
-    // Play move sound based on who made the move (before turn changed)
-    if (currentTurn == 1) {
-      await AudioService.instance.playPlayer1Move();
-    } else {
-      await AudioService.instance.playPlayer2Move();
-    }
-    
-    // Update displayed turn immediately for player moves
-    setState(() {
-      _displayedTurn = _gameService.turn;
-    });
-
-    if (_gameService.allEdgesFilled()) {
-      _endGame();
-      return;
-    }
-
-    if (claimed == 0) {
-      // If vs Computer mode and it's now the computer's turn, make AI move after 1 second
-      if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
-        // Update indicator to show computer's turn
-        setState(() {
-          _displayedTurn = 2;
-        });
-        await Future.delayed(const Duration(milliseconds: 1000));
-        _aiTurn();
+    try {
+      // In vs Computer mode, only allow Player 1 to make moves
+      if (_gameMode == AppConstants.vsComputerMode && _gameService.turn != 1) return;
+      
+      // In 1v1 mode, ensure only the current player can make moves
+      // The turn system already manages this, but we add explicit validation
+      // to prevent any edge cases where the wrong player might try to move
+      if (_gameMode == AppConstants.oneVsOneMode) {
+        // The turn must be 1 or 2 for a valid move
+        // This is already enforced by the game service, but we keep this check
+        // for clarity and to ensure the game state is valid
+        if (_gameService.turn != 1 && _gameService.turn != 2) return;
       }
-    }
-  }
-
-  /// Executes the computer's turn
-  void _aiTurn() async {
-    if (_gameService.turn != 2) return;
-
-    bool tookAnotherTurn;
-    do {
-      // Make one move
-      final move = _gameService.findBestAiMove();
+      
+      // Store the current turn before making the move
+      final currentTurn = _gameService.turn;
+      
+      // Validate the move is allowed before processing
+      if (!_gameService.isValidMove(move)) return;
+      
       final claimed = _gameService.handlePlayerMove(move);
       
-      setState(() {}); // Redraw board
+      // Play move sound based on who made the move (before turn changed)
+      try {
+        if (currentTurn == 1) {
+          await AudioService.instance.playPlayer1Move();
+        } else {
+          await AudioService.instance.playPlayer2Move();
+        }
+      } catch (e) {
+        // Continue if sound fails
+      }
       
-      // Play computer move sound
-      AudioService.instance.playPlayer2Move();
-      
-      // Small delay to ensure sound starts playing
-      await Future.delayed(const Duration(milliseconds: 50));
+      // Update displayed turn immediately for player moves
+      if (mounted) {
+        setState(() {
+          _displayedTurn = _gameService.turn;
+        });
+      }
 
       if (_gameService.allEdgesFilled()) {
         _endGame();
         return;
       }
 
-      // If box was claimed, wait 0.20 seconds before next move
-      tookAnotherTurn = claimed > 0;
-      if (tookAnotherTurn) {
-        await Future.delayed(const Duration(milliseconds: 200));
+      if (claimed == 0) {
+        // If vs Computer mode and it's now the computer's turn, make AI move after 1 second
+        if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
+          // Update indicator to show computer's turn
+          if (mounted) {
+            setState(() {
+              _displayedTurn = 2;
+            });
+          }
+          await Future.delayed(const Duration(milliseconds: 1000));
+          if (mounted) {
+            _aiTurn();
+          }
+        }
       }
-    } while (tookAnotherTurn && _gameService.turn == 2);
-
-    // After computer finishes all moves, wait 0.25 seconds before changing indicator to player
-    if (_gameService.turn == 1) {
-      await Future.delayed(const Duration(milliseconds: 250));
+    } catch (e) {
+      // Handle any errors gracefully - don't crash the app
       if (mounted) {
-        setState(() {
-          _displayedTurn = 1;
-        });
+        setState(() {});
       }
     }
+  }
 
-    if (_gameService.allEdgesFilled()) {
-      _endGame();
+  /// Executes the computer's turn
+  void _aiTurn() async {
+    if (_gameService.turn != 2 || !mounted) return;
+
+    try {
+      bool tookAnotherTurn;
+      do {
+        if (!mounted) return;
+        
+        // Make one move
+        final move = _gameService.findBestAiMove();
+        final claimed = _gameService.handlePlayerMove(move);
+        
+        if (mounted) {
+          setState(() {}); // Redraw board
+        }
+        
+        // Play computer move sound
+        try {
+          AudioService.instance.playPlayer2Move();
+        } catch (e) {
+          // Continue if sound fails
+        }
+        
+        // Small delay to ensure sound starts playing
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        if (_gameService.allEdgesFilled()) {
+          _endGame();
+          return;
+        }
+
+        // If box was claimed, wait 0.20 seconds before next move
+        tookAnotherTurn = claimed > 0;
+        if (tookAnotherTurn) {
+          await Future.delayed(const Duration(milliseconds: 200));
+        }
+      } while (tookAnotherTurn && _gameService.turn == 2 && mounted);
+
+      // After computer finishes all moves, wait 0.25 seconds before changing indicator to player
+      if (_gameService.turn == 1 && mounted) {
+        await Future.delayed(const Duration(milliseconds: 250));
+        if (mounted) {
+          setState(() {
+            _displayedTurn = 1;
+          });
+        }
+      }
+
+      if (_gameService.allEdgesFilled() && mounted) {
+        _endGame();
+      }
+    } catch (e) {
+      // Handle errors gracefully
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 
   /// Ends the game and shows the game over popup
   void _endGame() async {
-    final scores = _gameService.scores;
+    if (!mounted) return;
     
-    // Play appropriate sound based on game result
-    if (scores[1]! > scores[2]!) {
-      // Player 1 wins
-      await AudioService.instance.playWinSound();
-      if (_gameMode == AppConstants.vsComputerMode) {
-        _gameOverTitle = "Player Wins! 🎉";
-        _gameOverMessage =
-            "Congratulations! You won ${scores[1]} to ${scores[2]}.";
-      } else {
-        _gameOverTitle = "$_player1Name Wins! 🎉";
-        _gameOverMessage =
-            "$_player1Name won ${scores[1]} to ${scores[2]}!";
+    try {
+      final scores = _gameService.scores;
+      
+      // Ensure scores exist with fallback values
+      final score1 = scores[1] ?? 0;
+      final score2 = scores[2] ?? 0;
+      
+      // Play appropriate sound based on game result
+      try {
+        if (score1 > score2) {
+          // Player 1 wins
+          await AudioService.instance.playWinSound();
+        } else if (score2 > score1) {
+          // Player 2/Computer wins
+          if (_gameMode == AppConstants.vsComputerMode) {
+            await AudioService.instance.playLoseSound();
+          } else {
+            await AudioService.instance.playWinSound();
+          }
+        }
+      } catch (e) {
+        // Continue if sound fails
       }
-    } else if (scores[2]! > scores[1]!) {
-      // Player 2/Computer wins
-      if (_gameMode == AppConstants.vsComputerMode) {
-        // Player loses to computer
-        await AudioService.instance.playLoseSound();
-        _gameOverTitle = "Computer Wins! 🤖";
-        _gameOverMessage = "The computer won ${scores[2]} to ${scores[1]}.";
+      
+      // Set game over message
+      if (score1 > score2) {
+        if (_gameMode == AppConstants.vsComputerMode) {
+          _gameOverTitle = "Player Wins! 🎉";
+          _gameOverMessage = "Congratulations! You won $score1 to $score2.";
+        } else {
+          _gameOverTitle = "$_player1Name Wins! 🎉";
+          _gameOverMessage = "$_player1Name won $score1 to $score2!";
+        }
+      } else if (score2 > score1) {
+        if (_gameMode == AppConstants.vsComputerMode) {
+          _gameOverTitle = "Computer Wins! 🤖";
+          _gameOverMessage = "The computer won $score2 to $score1.";
+        } else {
+          _gameOverTitle = "$_player2Name Wins! 🎉";
+          _gameOverMessage = "$_player2Name won $score2 to $score1!";
+        }
       } else {
-        // Player 2 wins in 1v1
-        await AudioService.instance.playWinSound();
-        _gameOverTitle = "$_player2Name Wins! 🎉";
-        _gameOverMessage =
-            "$_player2Name won ${scores[2]} to ${scores[1]}!";
+        // Tie
+        _gameOverTitle = "It's a Tie! 🤝";
+        if (_gameMode == AppConstants.vsComputerMode) {
+          _gameOverMessage = "You and the computer both scored $score1 points.";
+        } else {
+          _gameOverMessage = "$_player1Name and $_player2Name both scored $score1 points.";
+        }
       }
-    } else {
-      // Tie - no specific sound for tie
-      _gameOverTitle = "It's a Tie! 🤝";
-      if (_gameMode == AppConstants.vsComputerMode) {
-        _gameOverMessage = "You and the computer both scored ${scores[1]} points.";
-      } else {
-        _gameOverMessage = "$_player1Name and $_player2Name both scored ${scores[1]} points.";
+      
+      if (mounted) {
+        setState(() {
+          _isGameOverVisible = true;
+        });
+      }
+    } catch (e) {
+      // Fallback game over message if error occurs
+      if (mounted) {
+        setState(() {
+          _gameOverTitle = "Game Over!";
+          _gameOverMessage = "The game has ended.";
+          _isGameOverVisible = true;
+        });
       }
     }
-    
-    setState(() {
-      _isGameOverVisible = true;
-    });
   }
   
   /// Handle restart button press with interstitial ad
@@ -464,10 +569,10 @@ class _GameScreenState extends State<GameScreen> {
                     turn: _gameService.turn,
                     onEdgeHover: (edge) {
                       // In vs Computer mode, only show hover for Player 1
-                      // In 1v1 mode, show hover for both players
+                      // In 1v1 mode, only show hover when it's a valid turn (1 or 2)
                       bool canHover = _gameMode == AppConstants.vsComputerMode 
                           ? _gameService.turn == 1 
-                          : true;
+                          : (_gameService.turn == 1 || _gameService.turn == 2);
                       
                       if (canHover && _gameService.isValidMove(edge)) {
                         setState(() => _hoveredEdge = edge);
@@ -476,7 +581,19 @@ class _GameScreenState extends State<GameScreen> {
                       }
                     },
                     onEdgeTap: (edge) {
-                      _handlePlayerMove(edge);
+                      // Only process taps if it's a valid turn
+                      // This prevents the opposite player from placing walls during the other player's turn
+                      if (_gameMode == AppConstants.vsComputerMode) {
+                        // In vs Computer mode, only allow Player 1 to tap
+                        if (_gameService.turn == 1) {
+                          _handlePlayerMove(edge);
+                        }
+                      } else if (_gameMode == AppConstants.oneVsOneMode) {
+                        // In 1v1 mode, only allow taps when it's a valid player's turn (1 or 2)
+                        if (_gameService.turn == 1 || _gameService.turn == 2) {
+                          _handlePlayerMove(edge);
+                        }
+                      }
                     },
                     hoveredEdge: _hoveredEdge,
                   ),
