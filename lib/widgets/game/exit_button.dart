@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../common/glassmorphic_container.dart';
 import '../../services/audio_service.dart';
+import '../../utils/responsive_utils.dart';
 
 /// Exit button widget for navigation
 class ExitButton extends StatelessWidget {
@@ -16,8 +17,15 @@ class ExitButton extends StatelessWidget {
         onPressed();
       },
       child: GlassmorphicContainer(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: const Icon(Icons.arrow_back, color: Colors.white, size: 18),
+        padding: EdgeInsets.symmetric(
+          horizontal: ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+          vertical: ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
+        ),
+        child: Icon(
+          Icons.arrow_back,
+          color: Colors.white,
+          size: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
+        ),
       ),
     );
   }

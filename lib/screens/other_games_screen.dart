@@ -8,6 +8,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import '../models/other_game.dart';
 import '../services/other_games_service.dart';
+import '../utils/responsive_utils.dart';
 import '../widgets/common/ad_banner.dart';
 import '../widgets/game/exit_button.dart';
 
@@ -87,17 +88,21 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
                                     constraints.maxWidth,
                                   );
 
+                              final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
+                              final bottomPadding = ResponsiveUtils.getResponsiveSpacing(context, 100, 110, 120);
+                              final spacing = ResponsiveUtils.getResponsiveSpacing(context, 14, 15, 16);
+                              
                               return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding,
                                 ),
                                 child: GridView.builder(
-                                  padding: const EdgeInsets.only(bottom: 120),
+                                  padding: EdgeInsets.only(bottom: bottomPadding),
                                   gridDelegate:
                                       SliverGridDelegateWithFixedCrossAxisCount(
                                         crossAxisCount: crossAxisCount,
-                                        mainAxisSpacing: 16,
-                                        crossAxisSpacing: 18,
+                                        mainAxisSpacing: spacing,
+                                        crossAxisSpacing: ResponsiveUtils.getResponsiveSpacing(context, 16, 17, 18),
                                         childAspectRatio: childAspectRatio,
                                       ),
                                   itemCount: games.length,
@@ -153,8 +158,12 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
+    final bottomSpacing = ResponsiveUtils.getResponsiveSpacing(context, 12, 14, 16);
+    final placeholderWidth = ResponsiveUtils.getResponsiveValue(context, 40, 42, 44);
+    
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, bottomSpacing),
       child: Row(
         children: [
           ExitButton(
@@ -162,18 +171,21 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
           ),
           Expanded(
             child: Center(
-              child: Text(
-                'FGTP Labs',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white.withOpacity(0.92),
-                  letterSpacing: 0.4,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'FGTP Labs',
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, 20, 21, 22),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white.withOpacity(0.92),
+                    letterSpacing: ResponsiveUtils.getResponsiveValue(context, 0.3, 0.35, 0.4),
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 44),
+          SizedBox(width: placeholderWidth),
         ],
       ),
     );
@@ -181,31 +193,39 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.videogame_asset_off,
-            size: 56,
-            color: AppColors.mutedColor.withOpacity(0.6),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'No other games available right now.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: ResponsiveUtils.getResponsivePadding(context),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.videogame_asset_off,
+              size: ResponsiveUtils.getResponsiveValue(context, 48, 52, 56),
+              color: AppColors.mutedColor.withOpacity(0.6),
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Check back soon for more fun experiences!',
-            style: TextStyle(color: AppColors.mutedColor, fontSize: 14),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12, 14, 16)),
+            Text(
+              'No other games available right now.',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 6, 7, 8)),
+            Text(
+              'Check back soon for more fun experiences!',
+              style: TextStyle(
+                color: AppColors.mutedColor,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12, 13, 14),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -213,32 +233,37 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
   Widget _buildErrorState(String message) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: EdgeInsets.symmetric(
+          horizontal: ResponsiveUtils.getResponsivePadding(context),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.error_outline,
-              size: 56,
+              size: ResponsiveUtils.getResponsiveValue(context, 48, 52, 56),
               color: AppColors.p1Color.withOpacity(0.8),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12, 14, 16)),
+            Text(
               'Unable to load games',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 20,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18, 19, 20),
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 6, 7, 8)),
+            Text(
               'Something went wrong. Please try again in a moment.',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12, 13, 14),
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12, 14, 16)),
             ElevatedButton(
               onPressed: () {
                 setState(() {
@@ -250,17 +275,22 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.p1Color,
                 foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.getResponsiveValue(context, 20, 22, 24),
+                  vertical: ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                  ),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Retry',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
+                ),
               ),
             ),
           ],
@@ -272,35 +302,37 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
   Widget _buildOfflineState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: EdgeInsets.symmetric(
+          horizontal: ResponsiveUtils.getResponsivePadding(context),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.wifi_off,
-              size: 56,
+              size: ResponsiveUtils.getResponsiveValue(context, 48, 52, 56),
               color: AppColors.mutedColor.withOpacity(0.8),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12, 14, 16)),
+            Text(
               'No internet connection',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 20,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18, 19, 20),
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 6, 7, 8)),
+            Text(
               'Please reconnect to the internet and refresh to explore our other games.',
               style: TextStyle(
                 color: Colors.white70,
-                fontSize: 14,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12, 13, 14),
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12, 14, 16)),
             ElevatedButton(
               onPressed: () {
                 setState(() {
@@ -312,19 +344,23 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.p1Color,
                 foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.getResponsiveValue(context, 20, 22, 24),
+                  vertical: ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                  ),
                 ),
               ),
-              child: const Text('Refresh',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  )),
+              child: Text(
+                'Refresh',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
+                ),
+              ),
             ),
           ],
         ),
@@ -428,50 +464,66 @@ class _OtherGameCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                padding: EdgeInsets.fromLTRB(
+                  ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                  ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                  ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                  0,
+                ),
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: _SquareArtwork(imageUrl: game.imageUrl),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12)),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                ),
                 child: Text(
                   game.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
                     fontWeight: FontWeight.bold,
                     height: 1.2,
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12)),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                padding: EdgeInsets.fromLTRB(
+                  ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                  0,
+                  ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                  0,
+                ),
                 child: SizedBox(
-                  height: 40,
+                  height: ResponsiveUtils.getResponsiveValue(context, 36, 38, 40),
                   child: ElevatedButton(
                     onPressed: onPlay,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.p1Color,
                       foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                      padding: EdgeInsets.symmetric(
+                        vertical: ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
                       ),
-                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          ResponsiveUtils.getResponsiveValue(context, 26, 28, 30),
+                        ),
+                      ),
+                      elevation: ResponsiveUtils.getResponsiveValue(context, 4, 5, 6),
                       shadowColor: AppColors.p1Color.withOpacity(0.4),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Play Now',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
                       ),
                     ),
                   ),

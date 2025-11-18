@@ -240,6 +240,7 @@ class _AdBannerState extends State<AdBanner> {
       return Container(
         width: double.infinity,
         height: widget.height ?? 60.0,
+        color: Colors.transparent,
         padding: const EdgeInsets.symmetric(
           horizontal: 4.0,
           vertical: 2.0,

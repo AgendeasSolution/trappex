@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_constants.dart';
+import '../../utils/responsive_utils.dart';
 
 /// Turn indicator widget showing whose turn it is
 class TurnIndicator extends StatelessWidget {
@@ -49,13 +50,18 @@ class TurnIndicator extends StatelessWidget {
     return Transform.rotate(
       angle: (turn == 2 && gameMode != AppConstants.vsComputerMode) ? pi : 0, // 180 degrees for player 2 in 1v1 mode only
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: ResponsiveUtils.getResponsiveValue(context, 12, 14, 16),
+          vertical: ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
+        ),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(
+            ResponsiveUtils.getResponsiveValue(context, 12, 14, 16),
+          ),
           color: playerColor.withOpacity(0.1),
           border: Border.all(
             color: playerColor,
-            width: 2,
+            width: ResponsiveUtils.getResponsiveValue(context, 1.5, 1.75, 2),
           ),
         ),
         child: Row(
@@ -64,20 +70,24 @@ class TurnIndicator extends StatelessWidget {
             Icon(
               playerIcon,
               color: playerColor,
-              size: 24,
+              size: ResponsiveUtils.getResponsiveFontSize(context, 20, 22, 24),
             ),
-            const SizedBox(width: 8),
-            Text(playerName,
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: playerColor,
-                    shadows: const [
-                      Shadow(
-                          color: Colors.black38,
-                          blurRadius: 4,
-                          offset: Offset(0, 2))
-                    ])),
+            SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, 6, 7, 8)),
+            Text(
+              playerName,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18, 19, 20),
+                fontWeight: FontWeight.w700,
+                color: playerColor,
+                shadows: [
+                  Shadow(
+                    color: Colors.black38,
+                    blurRadius: ResponsiveUtils.getResponsiveValue(context, 3, 3.5, 4),
+                    offset: Offset(0, ResponsiveUtils.getResponsiveValue(context, 1.5, 1.75, 2)),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

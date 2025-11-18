@@ -6,6 +6,7 @@ import '../services/interstitial_ad_service.dart';
 import '../services/audio_service.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
+import '../utils/responsive_utils.dart';
 import '../widgets/game/game_board.dart';
 import '../widgets/game/exit_button.dart';
 import '../widgets/game/turn_indicator.dart';
@@ -276,6 +277,7 @@ class _GameScreenState extends State<GameScreen> {
     }
     
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -296,47 +298,48 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildGameUI() {
-    return LayoutBuilder(builder: (context, constraints) {
-      // Make the UI responsive
-      bool isMobile = constraints.maxWidth < 768;
-      double topPadding = isMobile ? 8 : 20;
-      double horizontalPadding = isMobile ? 12 : 24;
+    final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
+    final topPadding = ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12);
+    final boardPadding = ResponsiveUtils.getResponsiveSpacing(context, 6, 7, 8);
+    final turnIndicatorGap = ResponsiveUtils.getResponsiveSpacing(context, 80, 90, 100);
 
-      return Stack(
-        children: [
-          // Header Row with Exit Button and Game Name
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                0,
-                horizontalPadding,
-                0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Exit Button
-                  ExitButton(
-                    onPressed: () => _handleRestartButton(),
-                  ),
-                  // Game Name
-                  Expanded(
-                    child: Center(
+    return Stack(
+      children: [
+        // Header Row with Exit Button and Game Name
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              0,
+              horizontalPadding,
+              0,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Exit Button
+                ExitButton(
+                  onPressed: () => _handleRestartButton(),
+                ),
+                // Game Name
+                Expanded(
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
                       child: Text(
                         AppConstants.appName,
                         style: TextStyle(
-                          fontSize: isMobile ? 28 : 32,
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(context, 24, 26, 28),
                           color: AppColors.p1Color,
                           fontWeight: FontWeight.bold,
                           shadows: [
                             Shadow(
                               color: Colors.black38,
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
+                              blurRadius: ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
+                              offset: Offset(0, ResponsiveUtils.getResponsiveValue(context, 3, 3.5, 4)),
                             ),
                           ],
                         ),
@@ -344,146 +347,190 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                     ),
                   ),
-                  // Reset Button
-                  GestureDetector(
-                    onTap: () => _handleResetButton(),
-                    child: GlassmorphicContainer(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      child: const Icon(Icons.refresh, color: Colors.white, size: 18),
+                ),
+                // Reset Button
+                GestureDetector(
+                  onTap: () => _handleResetButton(),
+                  child: GlassmorphicContainer(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                      vertical: ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
+                    ),
+                    child: Icon(
+                      Icons.refresh,
+                      color: Colors.white,
+                      size: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          // Player 2/Computer Turn Indicator (Top)
-          if (_gameService.turn == 2)
-            Positioned(
-              top: topPadding + 100, // More gap from board
-              left: 0,
-              right: 0,
-              child: Center(
-                child: TurnIndicator(
-                  turn: _gameService.turn, 
-                  gameMode: _gameMode,
-                  player1Name: _player1Name,
-                  player2Name: _player2Name,
-                ),
-              ),
-            ),
-          // Player 1 Turn Indicator (Bottom)
-          if (_gameService.turn == 1)
-            Positioned(
-              bottom: topPadding + 100, // More gap from board
-              left: 0,
-              right: 0,
-              child: Center(
-                child: TurnIndicator(
-                  turn: _gameService.turn, 
-                  gameMode: _gameMode,
-                  player1Name: _player1Name,
-                  player2Name: _player2Name,
-                ),
-              ),
-            ),
-          // Game Board
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: GameBoard(
-                n: _gameService.n,
-                horizontalEdges: _gameService.horizontalEdges,
-                verticalEdges: _gameService.verticalEdges,
-                boxes: _gameService.boxes,
-                turn: _gameService.turn,
-                onEdgeHover: (edge) {
-                  // In vs Computer mode, only show hover for Player 1
-                  // In 1v1 mode, show hover for both players
-                  bool canHover = _gameMode == AppConstants.vsComputerMode 
-                      ? _gameService.turn == 1 
-                      : true;
-                  
-                  if (canHover && _gameService.isValidMove(edge)) {
-                    setState(() => _hoveredEdge = edge);
-                  } else {
-                    setState(() => _hoveredEdge = null);
-                  }
-                },
-                onEdgeTap: (edge) {
-                  _handlePlayerMove(edge);
-                },
-                hoveredEdge: _hoveredEdge,
-              ),
-            ),
-          ),
-          // Ad Banner at bottom
+        ),
+        // Player 2/Computer Turn Indicator (Top)
+        if (_gameService.turn == 2)
           Positioned(
-            bottom: 0,
+            top: topPadding + turnIndicatorGap,
             left: 0,
             right: 0,
-            child: const AdBanner(),
+            child: Center(
+              child: TurnIndicator(
+                turn: _gameService.turn, 
+                gameMode: _gameMode,
+                player1Name: _player1Name,
+                player2Name: _player2Name,
+              ),
+            ),
           ),
-        ],
-      );
-    });
+        // Player 1 Turn Indicator (Bottom)
+        if (_gameService.turn == 1)
+          Positioned(
+            bottom: topPadding + turnIndicatorGap,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: TurnIndicator(
+                turn: _gameService.turn, 
+                gameMode: _gameMode,
+                player1Name: _player1Name,
+                player2Name: _player2Name,
+              ),
+            ),
+          ),
+        // Game Board
+        Center(
+          child: Padding(
+            padding: EdgeInsets.all(boardPadding),
+            child: GameBoard(
+              n: _gameService.n,
+              horizontalEdges: _gameService.horizontalEdges,
+              verticalEdges: _gameService.verticalEdges,
+              boxes: _gameService.boxes,
+              turn: _gameService.turn,
+              onEdgeHover: (edge) {
+                // In vs Computer mode, only show hover for Player 1
+                // In 1v1 mode, show hover for both players
+                bool canHover = _gameMode == AppConstants.vsComputerMode 
+                    ? _gameService.turn == 1 
+                    : true;
+                
+                if (canHover && _gameService.isValidMove(edge)) {
+                  setState(() => _hoveredEdge = edge);
+                } else {
+                  setState(() => _hoveredEdge = null);
+                }
+              },
+              onEdgeTap: (edge) {
+                _handlePlayerMove(edge);
+              },
+              hoveredEdge: _hoveredEdge,
+            ),
+          ),
+        ),
+        // Ad Banner at bottom
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: const AdBanner(),
+        ),
+      ],
+    );
   }
 
   Widget _buildGameOverPopup() {
+    final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
+    
     return PopupOverlay(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(_gameOverTitle,
-              style: const TextStyle(
-                  fontSize: 28, color: AppColors.p1Color, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          Text(_gameOverMessage,
-              style:
-                  const TextStyle(fontSize: 16, color: AppColors.mutedColor, height: 1.6),
-              textAlign: TextAlign.center),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: ElevatedButton(
-                  onPressed: () => _handlePlayAgainButton(),
-                  style: ElevatedButton.styleFrom(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _gameOverTitle,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 24, 26, 28),
+                color: AppColors.p1Color,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12, 14, 16)),
+            Text(
+              _gameOverMessage,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
+                color: AppColors.mutedColor,
+                height: 1.6,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 20, 22, 24)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: ElevatedButton(
+                    onPressed: () => _handlePlayAgainButton(),
+                    style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.p1Color,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: ResponsiveUtils.getResponsiveValue(context, 20, 22, 24),
+                        vertical: ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                      ),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8))),
-                  child: const Text("Play Again",
-                      style: TextStyle(fontSize: 16, color: Colors.black),
-                      textAlign: TextAlign.center),
+                        borderRadius: BorderRadius.circular(
+                          ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "Play Again",
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
+                        color: Colors.black,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Flexible(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await AudioService.instance.playClickSound();
-                    setState(() {
-                      _isWelcomeVisible = true;
-                      _isFirstGame = true; // Reset for new 1v1 games
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
+                SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12)),
+                Flexible(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await AudioService.instance.playClickSound();
+                      setState(() {
+                        _isWelcomeVisible = true;
+                        _isFirstGame = true; // Reset for new 1v1 games
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.p2Color,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: ResponsiveUtils.getResponsiveValue(context, 20, 22, 24),
+                        vertical: ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                      ),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8))),
-                  child: const Text("Go to Home",
-                      style: TextStyle(fontSize: 16, color: Colors.black),
-                      textAlign: TextAlign.center),
+                        borderRadius: BorderRadius.circular(
+                          ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "Go to Home",
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
+                        color: Colors.black,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
