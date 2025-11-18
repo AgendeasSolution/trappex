@@ -165,22 +165,18 @@ class GameBoard extends StatelessWidget {
                       color: AppColors.canvasBorderColor, width: 1),
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0xFF0A0A0A),
-                      Color(0xFF1A1A1A),
-                      Color(0xFF2A2A2A)
+                      Color(0xFF041738),
+                      Color(0xFF052045),
+                      Color(0xFF062A5A)
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.black.withOpacity(0.7),
-                        blurRadius: 25,
-                        offset: const Offset(0, 25)),
-                    BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 10,
-                        offset: const Offset(0, 10)),
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4)),
                   ],
                 ),
                 child: CustomPaint(

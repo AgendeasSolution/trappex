@@ -16,7 +16,36 @@ import FBSDKCoreKit
       didFinishLaunchingWithOptions: launchOptions
     )
     
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    
+    // Set up method channel after window is initialized
+    DispatchQueue.main.async {
+      if let controller = self.window?.rootViewController as? FlutterViewController {
+        let appInfoChannel = FlutterMethodChannel(name: "app_info",
+                                                  binaryMessenger: controller.binaryMessenger)
+        
+        appInfoChannel.setMethodCallHandler({
+          (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+          if call.method == "getVersion" {
+            if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+              result(version)
+            } else {
+              result(FlutterError(code: "UNAVAILABLE", message: "Version not available", details: nil))
+            }
+          } else if call.method == "getPackageName" {
+            if let bundleId = Bundle.main.bundleIdentifier {
+              result(bundleId)
+            } else {
+              result(FlutterError(code: "UNAVAILABLE", message: "Package name not available", details: nil))
+            }
+          } else {
+            result(FlutterMethodNotImplemented)
+          }
+        })
+      }
+    }
+    
+    return result
   }
   
   override func application(

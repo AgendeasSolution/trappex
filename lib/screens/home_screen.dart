@@ -3,12 +3,14 @@ import 'package:url_launcher/url_launcher.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import '../services/audio_service.dart';
+import '../services/update_service.dart';
 import '../utils/responsive_utils.dart';
 import '../widgets/home/game_mode_chip.dart';
 import '../widgets/home/grid_chip.dart';
 import 'other_games_screen.dart';
 import '../widgets/common/popup_overlay.dart';
 import '../widgets/common/ad_banner.dart';
+import '../widgets/common/update_bottom_sheet.dart';
 
 /// Home screen widget for game setup and welcome
 class HomeScreen extends StatefulWidget {
@@ -44,6 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
   late TextEditingController _player2Controller;
   bool _isHowToPlayVisible = false;
   bool _isSoundEnabled = true;
+  bool _isTestGameOverVisible = false;
+  String _testGameOverTitle = "";
+  String _testGameOverMessage = "";
 
   @override
   void initState() {
@@ -51,6 +56,27 @@ class _HomeScreenState extends State<HomeScreen> {
     _player1Controller = TextEditingController(text: widget.player1Name);
     _player2Controller = TextEditingController(text: widget.player2Name);
     _loadSoundState();
+    _checkForUpdate();
+  }
+
+  /// Check for app updates and show bottom sheet if available
+  Future<void> _checkForUpdate() async {
+    // Wait a bit for the screen to load before checking
+    await Future.delayed(const Duration(seconds: 1));
+    
+    if (!mounted) return;
+    
+    try {
+      final updateService = UpdateService();
+      final hasUpdate = await updateService.checkForUpdate();
+      
+      if (hasUpdate && mounted) {
+        final storeUrl = updateService.getStoreUrl();
+        UpdateBottomSheet.show(context, storeUrl);
+      }
+    } catch (e) {
+      // Silently fail - don't interrupt user experience
+    }
   }
 
   Future<void> _loadSoundState() async {
@@ -58,6 +84,102 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       setState(() {});
     }
+  }
+
+  /// Show test game over popup (win scenario)
+  void _showTestGameOverWin() async {
+    await AudioService.instance.playWinSound();
+    setState(() {
+      _testGameOverTitle = "Player Wins! 🎉";
+      _testGameOverMessage = "Congratulations! You won 5 to 3.";
+      _isTestGameOverVisible = true;
+    });
+  }
+
+  /// Show test game over popup (lose scenario)
+  void _showTestGameOverLose() async {
+    await AudioService.instance.playLoseSound();
+    setState(() {
+      _testGameOverTitle = "Computer Wins! 🤖";
+      _testGameOverMessage = "The computer won 4 to 2.";
+      _isTestGameOverVisible = true;
+    });
+  }
+
+  /// Show test update popup
+  void _showTestUpdatePopup() {
+    final updateService = UpdateService();
+    final storeUrl = updateService.getStoreUrl();
+    UpdateBottomSheet.show(context, storeUrl);
+  }
+
+  /// Show test menu dialog
+  void _showTestMenu() async {
+    await AudioService.instance.playClickSound();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.homeCardBg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: AppColors.homeAccent, width: 2),
+        ),
+        title: Text(
+          "Test Popups",
+          style: TextStyle(
+            color: AppColors.p1Color,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.emoji_events, color: AppColors.p1Color),
+              title: Text(
+                "Game Over (Win)",
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showTestGameOverWin();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.sentiment_dissatisfied, color: AppColors.p2Color),
+              title: Text(
+                "Game Over (Lose)",
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showTestGameOverLose();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.system_update, color: AppColors.homeAccent),
+              title: Text(
+                "App Update",
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showTestUpdatePopup();
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "Close",
+              style: TextStyle(color: AppColors.mutedColor),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -75,13 +197,23 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/img/page_bg.png'),
-            fit: BoxFit.cover,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.homeBgDark,
+              AppColors.homeBgMedium,
+              AppColors.homeBgLight,
+            ],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
-        child: Column(
+        child: Stack(
+          children: [
+            // Animated particles/glow effect
+            _buildParticleBackground(context),
+            Column(
           children: [
             // Main content area
             Expanded(
@@ -103,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
-                                AppConstants.appName,
+                                AppConstants.appName.toUpperCase(),
                                 style: TextStyle(
                                   fontSize: ResponsiveUtils.getResponsiveLogoFontSize(context),
                                   color: AppColors.p1Color,
@@ -111,18 +243,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   letterSpacing: ResponsiveUtils.getResponsiveValue(context, 1.0, 1.2, 1.5),
                                   shadows: [
                                     Shadow(
-                                      color: Colors.black38,
-                                      blurRadius: ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
-                                      offset: Offset(0, ResponsiveUtils.getResponsiveValue(context, 3, 3.5, 4)),
-                                    ),
-                                    Shadow(
-                                      color: AppColors.p1Color.withOpacity(0.3),
-                                      blurRadius: ResponsiveUtils.getResponsiveValue(context, 14, 16, 18),
+                                      color: AppColors.homeAccentGlow.withOpacity(0.3),
+                                      blurRadius: ResponsiveUtils.getResponsiveValue(context, 8, 10, 12),
                                       offset: const Offset(0, 0),
                                     ),
                                     Shadow(
-                                      color: AppColors.p1Color.withOpacity(0.2),
-                                      blurRadius: ResponsiveUtils.getResponsiveValue(context, 22, 25, 28),
+                                      color: AppColors.homeAccentGlow.withOpacity(0.2),
+                                      blurRadius: ResponsiveUtils.getResponsiveValue(context, 12, 14, 16),
                                       offset: const Offset(0, 0),
                                     ),
                                   ],
@@ -149,37 +276,59 @@ class _HomeScreenState extends State<HomeScreen> {
                                   widget.onStartGame();
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.p1Color,
+                                  backgroundColor: AppColors.homeAccent,
                                   padding: EdgeInsets.symmetric(
-                                    vertical: ResponsiveUtils.getResponsiveValue(context, 14, 15, 16),
+                                    vertical: ResponsiveUtils.getResponsiveValue(context, 10, 12, 14),
                                   ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(
-                                      ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                                      ResponsiveUtils.getResponsiveValue(context, 12, 14, 16),
                                     ),
                                   ),
-                                  elevation: ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
-                                  shadowColor: AppColors.p1Color.withOpacity(0.3),
+                                  elevation: 0,
+                                  shadowColor: Colors.transparent,
+                                ).copyWith(
+                                  elevation: MaterialStateProperty.all(0),
                                 ),
-                                child: Text(
-                                  "Start Game",
-                                  style: TextStyle(
-                                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(
+                                      ResponsiveUtils.getResponsiveValue(context, 12, 14, 16),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.homeAccentGlow.withOpacity(0.25),
+                                        blurRadius: ResponsiveUtils.getResponsiveValue(context, 6, 8, 10),
+                                        spreadRadius: ResponsiveUtils.getResponsiveValue(context, 0, 1, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "Start Game",
+                                      style: TextStyle(
+                                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18, 20, 22),
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 24.0, 27.0, 30.0)),
                             
-                            // How to Play and Sound Button at top of Explore More Games section
+                            // How to Play, Sound, and Test buttons at top of Explore More Games section
                             if (!_isHowToPlayVisible)
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   _buildHowToPlayIconButton(context),
+                                  SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, 8, 9, 10)),
                                   _buildSoundToggleButton(context),
+                                  SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, 8, 9, 10)),
+                                  _buildTestButton(context),
                                 ],
                               ),
                             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10.0, 11.0, 12.0)),
@@ -215,6 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     if (_isHowToPlayVisible) _buildHowToPlayPopup(context),
+                    if (_isTestGameOverVisible) _buildTestGameOverPopup(context),
                     // Ad Banner - transparent overlay at bottom
                     Positioned(
                       bottom: 0,
@@ -227,7 +377,18 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  /// Build animated particle background effect
+  Widget _buildParticleBackground(BuildContext context) {
+    return Positioned.fill(
+      child: CustomPaint(
+        painter: ParticlePainter(),
       ),
     );
   }
@@ -290,27 +451,54 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildTestButton(BuildContext context) {
+    final iconSize = ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18);
+    final buttonSize = ResponsiveUtils.getResponsiveValue(context, 36, 38, 40);
+    final padding = ResponsiveUtils.getResponsiveValue(context, 6, 7, 8);
+    final borderRadius = ResponsiveUtils.getResponsiveValue(context, 6, 7, 8);
+    
+    return OutlinedButton(
+      onPressed: () => _showTestMenu(),
+      style: OutlinedButton.styleFrom(
+        padding: EdgeInsets.all(padding),
+        side: BorderSide(color: AppColors.mutedColor.withOpacity(0.6)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+        backgroundColor: AppColors.mutedColor.withOpacity(0.1),
+        minimumSize: Size(buttonSize, buttonSize),
+      ),
+      child: Icon(
+        Icons.bug_report,
+        color: AppColors.p2Color,
+        size: iconSize,
+      ),
+    );
+  }
+
+
   Widget _buildHowToPlayPopup(BuildContext context) {
     final maxHeight = ResponsiveUtils.getResponsiveValue(context, 400, 450, 500);
-    final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
+    final reducedPadding = ResponsiveUtils.getResponsiveValue(context, 8, 10, 12);
+    final topMargin = ResponsiveUtils.getResponsiveValue(context, 2, 3, 4);
     
     return PopupOverlay(
-      onDismiss: () {
-        AudioService.instance.playClickSound();
-        setState(() => _isHowToPlayVisible = false);
-      },
-      child: Container(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.zero,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+      showBackdrop: false,
+      padding: EdgeInsets.all(reducedPadding),
+      child: Stack(
+        children: [
+          Container(
+            constraints: BoxConstraints(maxHeight: maxHeight),
+            padding: EdgeInsets.symmetric(horizontal: reducedPadding),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.zero,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
+                  // Title with small top margin like close button
+                  Padding(
+                    padding: EdgeInsets.only(top: topMargin),
                     child: Text(
                       "How to Play",
                       style: TextStyle(
@@ -320,74 +508,82 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  OutlinedButton(
-                    onPressed: () async {
-                      await AudioService.instance.playClickSound();
-                      setState(() => _isHowToPlayVisible = false);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size(
-                        ResponsiveUtils.getResponsiveValue(context, 32, 34, 36),
-                        ResponsiveUtils.getResponsiveValue(context, 32, 34, 36),
-                      ),
-                      side: BorderSide(color: Colors.white24),
-                      backgroundColor: Colors.white.withOpacity(0.08),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
-                        ),
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.close,
-                      color: Colors.white70,
-                      size: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12)),
+                  Text(
+                    "Objective:",
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
+                      color: AppColors.p1Color,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 4, 5, 6)),
+                  _buildRuleItem(context, "Claim the most squares by completing them with walls"),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12)),
+                  Text(
+                    "How to Play:",
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
+                      color: AppColors.p1Color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 4, 5, 6)),
+                  _buildRuleItem(context, "1. Click on any cell/Square's edge to place a wall"),
+                  _buildRuleItem(context, "2. Players take turns placing one wall at a time"),
+                  _buildRuleItem(context, "3. When you complete a square by placing its 4th wall, you claim it"),
+                  _buildRuleItem(context, "4. Claiming a square gives you another turn immediately"),
+                  _buildRuleItem(context, "5. The game ends when all possible walls are placed"),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12)),
+                  Text(
+                    "Winning:",
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
+                      color: AppColors.p1Color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 4, 5, 6)),
+                  _buildRuleItem(context, "The player with the most claimed squares wins!"),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 6, 7, 8)),
                 ],
               ),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12)),
-              Text(
-                "Objective:",
-                style: TextStyle(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
-                  color: AppColors.p1Color,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 4, 5, 6)),
-              _buildRuleItem(context, "Claim the most squares by completing them with walls"),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12)),
-              Text(
-                "How to Play:",
-                style: TextStyle(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
-                  color: AppColors.p1Color,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 4, 5, 6)),
-              _buildRuleItem(context, "1. Click on any cell/Square's edge to place a wall"),
-              _buildRuleItem(context, "2. Players take turns placing one wall at a time"),
-              _buildRuleItem(context, "3. When you complete a square by placing its 4th wall, you claim it"),
-              _buildRuleItem(context, "4. Claiming a square gives you another turn immediately"),
-              _buildRuleItem(context, "5. The game ends when all possible walls are placed"),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12)),
-              Text(
-                "Winning:",
-                style: TextStyle(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
-                  color: AppColors.p1Color,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 4, 5, 6)),
-              _buildRuleItem(context, "The player with the most claimed squares wins!"),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 6, 7, 8)),
-            ],
+            ),
           ),
-        ),
+          // Close button at completely top-right corner
+          Positioned(
+            top: topMargin,
+            right: ResponsiveUtils.getResponsiveValue(context, 2, 3, 4),
+            child: OutlinedButton(
+              onPressed: () async {
+                await AudioService.instance.playClickSound();
+                setState(() => _isHowToPlayVisible = false);
+              },
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size(
+                  ResponsiveUtils.getResponsiveValue(context, 32, 34, 36),
+                  ResponsiveUtils.getResponsiveValue(context, 32, 34, 36),
+                ),
+                side: BorderSide(
+                  color: AppColors.homeAccent,
+                  width: 1.5,
+                ),
+                backgroundColor: AppColors.homeBgDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
+                  ),
+                ),
+              ),
+              child: Icon(
+                Icons.close,
+                color: AppColors.homeAccent,
+                size: ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -405,6 +601,78 @@ class _HomeScreenState extends State<HomeScreen> {
             fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12, 13, 14),
           ),
           textAlign: TextAlign.left,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTestGameOverPopup(BuildContext context) {
+    final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
+    
+    return PopupOverlay(
+      onDismiss: () {
+        AudioService.instance.playClickSound();
+        setState(() => _isTestGameOverVisible = false);
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _testGameOverTitle,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 24, 26, 28),
+                color: AppColors.p1Color,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12, 14, 16)),
+            Text(
+              _testGameOverMessage,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
+                color: AppColors.mutedColor,
+                height: 1.6,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 20, 22, 24)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await AudioService.instance.playClickSound();
+                      setState(() => _isTestGameOverVisible = false);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.p1Color,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: ResponsiveUtils.getResponsiveValue(context, 20, 22, 24),
+                        vertical: ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "Close",
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
+                        color: Colors.black,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -455,22 +723,17 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.7),
+        color: AppColors.homeCardBg.withOpacity(0.8),
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: Colors.white.withOpacity(0.5),
+          color: AppColors.homeCardBorder.withOpacity(0.6),
           width: ResponsiveUtils.getResponsiveValue(context, 1.5, 1.75, 2),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: ResponsiveUtils.getResponsiveValue(context, 8, 9, 10),
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 4,
             spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.white.withOpacity(0.15),
-            blurRadius: ResponsiveUtils.getResponsiveValue(context, 14, 16, 18),
-            spreadRadius: 1,
           ),
         ],
       ),
@@ -479,7 +742,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             "Player Names",
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.p1Color,
               fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
               fontWeight: FontWeight.bold,
             ),
@@ -525,13 +788,13 @@ class _HomeScreenState extends State<HomeScreen> {
       onChanged: onChanged,
       controller: controller,
       style: TextStyle(
-        color: AppColors.mutedColor,
+        color: Colors.white,
         fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12, 13, 14),
       ),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: AppColors.mutedColor.withOpacity(0.7),
+          color: AppColors.mutedColor.withOpacity(0.8),
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 10, 11, 12),
         ),
         hintText: "Enter name",
@@ -540,19 +803,19 @@ class _HomeScreenState extends State<HomeScreen> {
           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 12, 13, 14),
         ),
         filled: true,
-        fillColor: AppColors.mutedColor.withOpacity(0.05),
+        fillColor: Colors.transparent,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadius),
-          borderSide: BorderSide(color: AppColors.mutedColor.withOpacity(0.3)),
+          borderSide: BorderSide(color: AppColors.homeCardBorder.withOpacity(0.6)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadius),
-          borderSide: BorderSide(color: AppColors.mutedColor.withOpacity(0.3)),
+          borderSide: BorderSide(color: AppColors.homeCardBorder.withOpacity(0.6)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadius),
           borderSide: BorderSide(
-            color: AppColors.mutedColor,
+            color: AppColors.homeAccentGlow,
             width: ResponsiveUtils.getResponsiveValue(context, 1.5, 1.75, 2),
           ),
         ),
@@ -569,18 +832,23 @@ class _HomeScreenState extends State<HomeScreen> {
     
     return Column(
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            "Difficulty",
-            style: TextStyle(
-              color: AppColors.mutedColor,
-              fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18, 19, 20),
-              fontWeight: FontWeight.bold,
+        Padding(
+          padding: EdgeInsets.only(
+            top: ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12),
+          ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Difficulty",
+              style: TextStyle(
+                color: AppColors.mutedColor,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18, 19, 20),
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
-        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12, 14, 16)),
+        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12)),
         Row(
           children: [
             Expanded(
@@ -718,3 +986,49 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 }
+
+/// Custom painter for particle background effect
+class ParticlePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..strokeWidth = 1.0;
+
+    // Draw subtle glowing particles scattered across the background
+    final particles = [
+      Offset(size.width * 0.1, size.height * 0.15),
+      Offset(size.width * 0.25, size.height * 0.3),
+      Offset(size.width * 0.4, size.height * 0.2),
+      Offset(size.width * 0.6, size.height * 0.25),
+      Offset(size.width * 0.75, size.height * 0.35),
+      Offset(size.width * 0.9, size.height * 0.2),
+      Offset(size.width * 0.15, size.height * 0.6),
+      Offset(size.width * 0.35, size.height * 0.7),
+      Offset(size.width * 0.55, size.height * 0.65),
+      Offset(size.width * 0.7, size.height * 0.75),
+      Offset(size.width * 0.85, size.height * 0.6),
+      Offset(size.width * 0.2, size.height * 0.85),
+      Offset(size.width * 0.5, size.height * 0.9),
+      Offset(size.width * 0.8, size.height * 0.85),
+    ];
+
+    for (final particle in particles) {
+      // Outer glow
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.05);
+      canvas.drawCircle(particle, 8, paint);
+      
+      // Middle glow
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.08);
+      canvas.drawCircle(particle, 5, paint);
+      
+      // Inner bright point
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.15);
+      canvas.drawCircle(particle, 2, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+

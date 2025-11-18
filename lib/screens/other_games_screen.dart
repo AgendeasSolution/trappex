@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -37,98 +38,110 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/img/page_bg.png'),
-            fit: BoxFit.cover,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.homeBgDark,
+              AppColors.homeBgMedium,
+              AppColors.homeBgLight,
+            ],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: FutureBuilder<List<OtherGame>>(
-                        future: _gamesFuture,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.p1Color,
-                                ),
-                              ),
-                            );
-                          }
+        child: Stack(
+          children: [
+            // Animated particles/glow effect
+            _buildParticleBackground(context),
+            SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(context),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: FutureBuilder<List<OtherGame>>(
+                            future: _gamesFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.p1Color,
+                                    ),
+                                  ),
+                                );
+                              }
 
-                          if (snapshot.hasError) {
-                            final error = snapshot.error;
-                            if (error is SocketException) {
-                              return _buildOfflineState();
-                            }
-                            return _buildErrorState(error?.toString() ?? 'Something went wrong.');
-                          }
+                              if (snapshot.hasError) {
+                                final error = snapshot.error;
+                                if (error is SocketException) {
+                                  return _buildOfflineState();
+                                }
+                                return _buildErrorState(error?.toString() ?? 'Something went wrong.');
+                              }
 
-                          final games = snapshot.data ?? [];
-                          if (games.isEmpty) {
-                            return _buildEmptyState();
-                          }
+                              final games = snapshot.data ?? [];
+                              if (games.isEmpty) {
+                                return _buildEmptyState();
+                              }
 
-                          return LayoutBuilder(
-                            builder: (context, constraints) {
-                              final crossAxisCount = _calculateCrossAxisCount(
-                                constraints.maxWidth,
-                              );
-                              final childAspectRatio =
-                                  _calculateChildAspectRatio(
+                              return LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final crossAxisCount = _calculateCrossAxisCount(
                                     constraints.maxWidth,
                                   );
+                                  final childAspectRatio =
+                                      _calculateChildAspectRatio(
+                                        constraints.maxWidth,
+                                      );
 
-                              final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
-                              final bottomPadding = ResponsiveUtils.getResponsiveSpacing(context, 100, 110, 120);
-                              final spacing = ResponsiveUtils.getResponsiveSpacing(context, 14, 15, 16);
-                              
-                              return Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: horizontalPadding,
-                                ),
-                                child: GridView.builder(
-                                  padding: EdgeInsets.only(bottom: bottomPadding),
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: crossAxisCount,
-                                        mainAxisSpacing: spacing,
-                                        crossAxisSpacing: ResponsiveUtils.getResponsiveSpacing(context, 16, 17, 18),
-                                        childAspectRatio: childAspectRatio,
-                                      ),
-                                  itemCount: games.length,
-                                  itemBuilder: (context, index) {
-                                    final game = games[index];
-                                    return _OtherGameCard(
-                                      game: game,
-                                      onPlay: () => _launchGame(game),
-                                    );
-                                  },
-                                ),
+                                  final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
+                                  final bottomPadding = ResponsiveUtils.getResponsiveSpacing(context, 100, 110, 120);
+                                  final spacing = ResponsiveUtils.getResponsiveSpacing(context, 14, 15, 16);
+                                  
+                                  return Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: horizontalPadding,
+                                    ),
+                                    child: GridView.builder(
+                                      padding: EdgeInsets.only(bottom: bottomPadding),
+                                      gridDelegate:
+                                          SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: crossAxisCount,
+                                            mainAxisSpacing: spacing,
+                                            crossAxisSpacing: ResponsiveUtils.getResponsiveSpacing(context, 16, 17, 18),
+                                            childAspectRatio: childAspectRatio,
+                                          ),
+                                      itemCount: games.length,
+                                      itemBuilder: (context, index) {
+                                        final game = games[index];
+                                        return _OtherGameCard(
+                                          game: game,
+                                          onPlay: () => _launchGame(game),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                        const Align(
+                          alignment: Alignment.bottomCenter,
+                          child: AdBanner(margin: EdgeInsets.zero),
+                        ),
+                      ],
                     ),
-                    const Align(
-                      alignment: Alignment.bottomCenter,
-                      child: AdBanner(margin: EdgeInsets.zero),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -417,6 +430,15 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
       ),
     );
   }
+
+  /// Build animated particle background effect
+  Widget _buildParticleBackground(BuildContext context) {
+    return Positioned.fill(
+      child: CustomPaint(
+        painter: ParticlePainter(),
+      ),
+    );
+  }
 }
 
 class _OtherGameCard extends StatelessWidget {
@@ -583,4 +605,49 @@ class _SquareArtwork extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Custom painter for particle background effect
+class ParticlePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..strokeWidth = 1.0;
+
+    // Draw subtle glowing particles scattered across the background
+    final particles = [
+      Offset(size.width * 0.1, size.height * 0.15),
+      Offset(size.width * 0.25, size.height * 0.3),
+      Offset(size.width * 0.4, size.height * 0.2),
+      Offset(size.width * 0.6, size.height * 0.25),
+      Offset(size.width * 0.75, size.height * 0.35),
+      Offset(size.width * 0.9, size.height * 0.2),
+      Offset(size.width * 0.15, size.height * 0.6),
+      Offset(size.width * 0.35, size.height * 0.7),
+      Offset(size.width * 0.55, size.height * 0.65),
+      Offset(size.width * 0.7, size.height * 0.75),
+      Offset(size.width * 0.85, size.height * 0.6),
+      Offset(size.width * 0.2, size.height * 0.85),
+      Offset(size.width * 0.5, size.height * 0.9),
+      Offset(size.width * 0.8, size.height * 0.85),
+    ];
+
+    for (final particle in particles) {
+      // Outer glow
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.05);
+      canvas.drawCircle(particle, 8, paint);
+      
+      // Middle glow
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.08);
+      canvas.drawCircle(particle, 5, paint);
+      
+      // Inner bright point
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.15);
+      canvas.drawCircle(particle, 2, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

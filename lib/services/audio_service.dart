@@ -41,6 +41,8 @@ class AudioService {
     if (!_isSoundEnabled) return;
 
     try {
+      // Stop any currently playing sound to allow new sound to play
+      await _audioPlayer.stop();
       await _audioPlayer.play(AssetSource(assetPath));
     } catch (e) {
       // Error playing sound - continue silently

@@ -31,43 +31,80 @@ class GridChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(25),
           border: Border.all(
               color: isSelected
-                  ? AppColors.p1Color
-                  : Colors.white.withOpacity(0.5),
-              width: 2),
-          color: isSelected
-              ? AppColors.p1Color
-              : Colors.black.withOpacity(0.7),
+                  ? AppColors.homeAccentGlow
+                  : AppColors.homeCardBorder.withOpacity(0.6),
+              width: isSelected ? 2.0 : 1.5),
+          color: AppColors.homeCardBg.withOpacity(0.8),
           boxShadow: isSelected
               ? [
+                  // Outer glow - multiple layers for depth
                   BoxShadow(
-                      color: AppColors.p1Color.withOpacity(0.5),
-                      blurRadius: 15,
-                      spreadRadius: 0)
+                    color: AppColors.homeAccentGlow.withOpacity(0.4),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                  BoxShadow(
+                    color: AppColors.homeAccentGlow.withOpacity(0.3),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                  BoxShadow(
+                    color: AppColors.homeAccentGlow.withOpacity(0.2),
+                    blurRadius: 4,
+                    spreadRadius: 0,
+                  ),
+                  // Base shadow
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    spreadRadius: 0,
+                  ),
                 ]
               : [
                   BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
-                      blurRadius: 10,
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 4,
                       spreadRadius: 0),
-                  BoxShadow(
-                      color: Colors.white.withOpacity(0.15),
-                      blurRadius: 18,
-                      spreadRadius: 1)
                 ],
         ),
-        child: Column(
+        child: Stack(
           children: [
-            Text("$size × $size",
-                style: TextStyle(
-                    color:
-                        isSelected ? Colors.black : Colors.white,
-                    fontWeight: FontWeight.bold)),
-            Text(label,
-                style: TextStyle(
-                    color: isSelected
-                        ? Colors.black.withOpacity(0.8)
-                        : Colors.white.withOpacity(0.9),
-                    fontSize: 12)),
+            // Inner glow effect for selected cards
+            if (isSelected)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25),
+                    gradient: RadialGradient(
+                      center: Alignment.center,
+                      radius: 1.2,
+                      colors: [
+                        AppColors.homeAccentGlow.withOpacity(0.15),
+                        AppColors.homeAccentGlow.withOpacity(0.05),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.4, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("$size × $size",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
+                  Text(label,
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 12)),
+                ],
+              ),
+            ),
           ],
         ),
       ),

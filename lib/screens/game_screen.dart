@@ -41,11 +41,15 @@ class _GameScreenState extends State<GameScreen> {
   // Track who should go first in the next game (alternates between 1 and 2)
   int _nextGameFirstTurn = 1;
   bool _isFirstGame = true; // Track if this is the first game in 1v1 mode
+  
+  // Displayed turn for indicator (with delay for computer moves)
+  int _displayedTurn = 1;
 
   @override
   void initState() {
     super.initState();
     _gameService.initGame(_selectedGridSize, initialTurn: _nextGameFirstTurn);
+    _displayedTurn = _gameService.turn;
     
     // Preload interstitial ad for better user experience
     InterstitialAdService.instance.preloadAd();
@@ -69,6 +73,7 @@ class _GameScreenState extends State<GameScreen> {
       }
       
       _gameService.initGame(_selectedGridSize, initialTurn: initialTurn);
+      _displayedTurn = _gameService.turn;
       
       // Alternate the first turn for the next game (except for first 1v1 game)
       if (!(_gameMode == AppConstants.oneVsOneMode && _isFirstGame)) {
@@ -76,8 +81,12 @@ class _GameScreenState extends State<GameScreen> {
       }
     });
     
-    // If it's the computer's turn in vs Computer mode, make AI move
+    // If it's the computer's turn in vs Computer mode, make AI move after 1 second
     if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
+      // Update indicator to show computer's turn
+      setState(() {
+        _displayedTurn = 2;
+      });
       Future.delayed(const Duration(milliseconds: 1000), () {
         _aiTurn();
       });
@@ -101,7 +110,10 @@ class _GameScreenState extends State<GameScreen> {
       await AudioService.instance.playPlayer2Move();
     }
     
-    setState(() {}); // Redraw the board
+    // Update displayed turn immediately for player moves
+    setState(() {
+      _displayedTurn = _gameService.turn;
+    });
 
     if (_gameService.allEdgesFilled()) {
       _endGame();
@@ -109,8 +121,12 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     if (claimed == 0) {
-      // If vs Computer mode and it's now the computer's turn, make AI move
+      // If vs Computer mode and it's now the computer's turn, make AI move after 1 second
       if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
+        // Update indicator to show computer's turn
+        setState(() {
+          _displayedTurn = 2;
+        });
         await Future.delayed(const Duration(milliseconds: 1000));
         _aiTurn();
       }
@@ -121,12 +137,41 @@ class _GameScreenState extends State<GameScreen> {
   void _aiTurn() async {
     if (_gameService.turn != 2) return;
 
-    _gameService.aiTurn();
-    
-    // Play computer move sound
-    await AudioService.instance.playPlayer2Move();
-    
-    setState(() {}); // Redraw
+    bool tookAnotherTurn;
+    do {
+      // Make one move
+      final move = _gameService.findBestAiMove();
+      final claimed = _gameService.handlePlayerMove(move);
+      
+      setState(() {}); // Redraw board
+      
+      // Play computer move sound
+      AudioService.instance.playPlayer2Move();
+      
+      // Small delay to ensure sound starts playing
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      if (_gameService.allEdgesFilled()) {
+        _endGame();
+        return;
+      }
+
+      // If box was claimed, wait 0.20 seconds before next move
+      tookAnotherTurn = claimed > 0;
+      if (tookAnotherTurn) {
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+    } while (tookAnotherTurn && _gameService.turn == 2);
+
+    // After computer finishes all moves, wait 0.25 seconds before changing indicator to player
+    if (_gameService.turn == 1) {
+      await Future.delayed(const Duration(milliseconds: 250));
+      if (mounted) {
+        setState(() {
+          _displayedTurn = 1;
+        });
+      }
+    }
 
     if (_gameService.allEdgesFilled()) {
       _endGame();
@@ -218,10 +263,15 @@ class _GameScreenState extends State<GameScreen> {
     _gameService.initGame(_selectedGridSize, initialTurn: _gameService.turn);
     setState(() {
       _hoveredEdge = null; // Clear any hovered edge
+      _displayedTurn = _gameService.turn;
     });
     
-    // If it's the computer's turn in vs Computer mode, make AI move
+    // If it's the computer's turn in vs Computer mode, make AI move after 1 second
     if (_gameMode == AppConstants.vsComputerMode && _gameService.turn == 2) {
+      // Update indicator to show computer's turn
+      setState(() {
+        _displayedTurn = 2;
+      });
       Future.delayed(const Duration(milliseconds: 1000), () {
         _aiTurn();
       });
@@ -279,19 +329,31 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/img/page_bg.png'),
-            fit: BoxFit.cover,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.homeBgDark,
+              AppColors.homeBgMedium,
+              AppColors.homeBgLight,
+            ],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              _buildGameUI(),
-              if (_isGameOverVisible) _buildGameOverPopup(),
-            ],
-          ),
+        child: Stack(
+          children: [
+            // Animated particles/glow effect
+            _buildParticleBackground(context),
+            SafeArea(
+              child: Stack(
+                children: [
+                  _buildGameUI(),
+                  if (_isGameOverVisible) _buildGameOverPopup(),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -301,7 +363,7 @@ class _GameScreenState extends State<GameScreen> {
     final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
     final topPadding = ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12);
     final boardPadding = ResponsiveUtils.getResponsiveSpacing(context, 6, 7, 8);
-    final turnIndicatorGap = ResponsiveUtils.getResponsiveSpacing(context, 80, 90, 100);
+    final turnIndicatorGap = ResponsiveUtils.getResponsiveSpacing(context, 20, 24, 28);
 
     return Stack(
       children: [
@@ -367,63 +429,77 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
         ),
-        // Player 2/Computer Turn Indicator (Top)
-        if (_gameService.turn == 2)
-          Positioned(
-            top: topPadding + turnIndicatorGap,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: TurnIndicator(
-                turn: _gameService.turn, 
-                gameMode: _gameMode,
-                player1Name: _player1Name,
-                player2Name: _player2Name,
-              ),
-            ),
-          ),
-        // Player 1 Turn Indicator (Bottom)
-        if (_gameService.turn == 1)
-          Positioned(
-            bottom: topPadding + turnIndicatorGap,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: TurnIndicator(
-                turn: _gameService.turn, 
-                gameMode: _gameMode,
-                player1Name: _player1Name,
-                player2Name: _player2Name,
-              ),
-            ),
-          ),
-        // Game Board
-        Center(
-          child: Padding(
-            padding: EdgeInsets.all(boardPadding),
-            child: GameBoard(
-              n: _gameService.n,
-              horizontalEdges: _gameService.horizontalEdges,
-              verticalEdges: _gameService.verticalEdges,
-              boxes: _gameService.boxes,
-              turn: _gameService.turn,
-              onEdgeHover: (edge) {
-                // In vs Computer mode, only show hover for Player 1
-                // In 1v1 mode, show hover for both players
-                bool canHover = _gameMode == AppConstants.vsComputerMode 
-                    ? _gameService.turn == 1 
-                    : true;
-                
-                if (canHover && _gameService.isValidMove(edge)) {
-                  setState(() => _hoveredEdge = edge);
-                } else {
-                  setState(() => _hoveredEdge = null);
-                }
-              },
-              onEdgeTap: (edge) {
-                _handlePlayerMove(edge);
-              },
-              hoveredEdge: _hoveredEdge,
+        // Game Board with Turn Indicators - Centered on screen
+        Positioned.fill(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Player 2/Computer Turn Indicator (Top) - Always rendered, visibility controlled
+                Visibility(
+                  visible: _displayedTurn == 2,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: ResponsiveUtils.getResponsiveSpacing(context, 24, 28, 32),
+                    ),
+                    child: TurnIndicator(
+                      turn: 2, 
+                      gameMode: _gameMode,
+                      player1Name: _player1Name,
+                      player2Name: _player2Name,
+                    ),
+                  ),
+                ),
+                // Game Board
+                Padding(
+                  padding: EdgeInsets.all(boardPadding),
+                  child: GameBoard(
+                    n: _gameService.n,
+                    horizontalEdges: _gameService.horizontalEdges,
+                    verticalEdges: _gameService.verticalEdges,
+                    boxes: _gameService.boxes,
+                    turn: _gameService.turn,
+                    onEdgeHover: (edge) {
+                      // In vs Computer mode, only show hover for Player 1
+                      // In 1v1 mode, show hover for both players
+                      bool canHover = _gameMode == AppConstants.vsComputerMode 
+                          ? _gameService.turn == 1 
+                          : true;
+                      
+                      if (canHover && _gameService.isValidMove(edge)) {
+                        setState(() => _hoveredEdge = edge);
+                      } else {
+                        setState(() => _hoveredEdge = null);
+                      }
+                    },
+                    onEdgeTap: (edge) {
+                      _handlePlayerMove(edge);
+                    },
+                    hoveredEdge: _hoveredEdge,
+                  ),
+                ),
+                // Player 1 Turn Indicator (Bottom) - Always rendered, visibility controlled
+                Visibility(
+                  visible: _displayedTurn == 1,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: ResponsiveUtils.getResponsiveSpacing(context, 24, 28, 32),
+                    ),
+                    child: TurnIndicator(
+                      turn: 1, 
+                      gameMode: _gameMode,
+                      player1Name: _player1Name,
+                      player2Name: _player2Name,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -534,4 +610,58 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
+
+  /// Build animated particle background effect
+  Widget _buildParticleBackground(BuildContext context) {
+    return Positioned.fill(
+      child: CustomPaint(
+        painter: ParticlePainter(),
+      ),
+    );
+  }
+}
+
+/// Custom painter for particle background effect
+class ParticlePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..strokeWidth = 1.0;
+
+    // Draw subtle glowing particles scattered across the background
+    final particles = [
+      Offset(size.width * 0.1, size.height * 0.15),
+      Offset(size.width * 0.25, size.height * 0.3),
+      Offset(size.width * 0.4, size.height * 0.2),
+      Offset(size.width * 0.6, size.height * 0.25),
+      Offset(size.width * 0.75, size.height * 0.35),
+      Offset(size.width * 0.9, size.height * 0.2),
+      Offset(size.width * 0.15, size.height * 0.6),
+      Offset(size.width * 0.35, size.height * 0.7),
+      Offset(size.width * 0.55, size.height * 0.65),
+      Offset(size.width * 0.7, size.height * 0.75),
+      Offset(size.width * 0.85, size.height * 0.6),
+      Offset(size.width * 0.2, size.height * 0.85),
+      Offset(size.width * 0.5, size.height * 0.9),
+      Offset(size.width * 0.8, size.height * 0.85),
+    ];
+
+    for (final particle in particles) {
+      // Outer glow
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.05);
+      canvas.drawCircle(particle, 8, paint);
+      
+      // Middle glow
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.08);
+      canvas.drawCircle(particle, 5, paint);
+      
+      // Inner bright point
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.15);
+      canvas.drawCircle(particle, 2, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -14,6 +14,15 @@ class AppColors {
   static const Color p2WallColor = Color(0xFFEAB308); // Bright yellow for player 2 walls
   static const Color emptyWallColor = Color(0x4D22C55E); // Dim green for empty walls
   
+  // Home screen colors - dark blue theme with neon accents
+  static const Color homeBgDark = Color(0xFF041738); // Dark blue base
+  static const Color homeBgMedium = Color(0xFF052045); // Medium dark blue
+  static const Color homeBgLight = Color(0xFF062A5A); // Lighter dark blue
+  static const Color homeAccent = Color(0xFF10B981); // Bright green (same as p1Color)
+  static const Color homeAccentGlow = Color(0xFF22C55E); // Brighter green for glows
+  static const Color homeCardBg = Color(0xFF0A2E5C); // Card background
+  static const Color homeCardBorder = Color(0xFF1A4A7F); // Card border
+  
   // Private constructor to prevent instantiation
   AppColors._();
 }

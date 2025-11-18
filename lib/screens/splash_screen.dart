@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import 'game_screen.dart';
@@ -67,70 +68,136 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/img/page_bg.png'),
-            fit: BoxFit.cover,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.homeBgDark,
+              AppColors.homeBgMedium,
+              AppColors.homeBgLight,
+            ],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Column(
+        child: Stack(
           children: [
-            // Spacer to push content to center
-            const Spacer(),
-            // Game name as logo - perfectly centered
-            Center(
-              child: Text(
-                AppConstants.appName,
-                style: const TextStyle(
-                  fontSize: 48,
-                  color: AppColors.p1Color,
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black38,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            // Spacer to push developer text to bottom
-            const Spacer(),
-            // Developer text at bottom
-            Padding(
-              padding: const EdgeInsets.only(bottom: 40.0),
+            // Animated particles/glow effect
+            _buildParticleBackground(context),
+            FadeTransition(
+              opacity: _fadeAnimation,
               child: Column(
                 children: [
-                  Text(
-                    'Developed by',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.mutedColor.withOpacity(0.7),
-                      fontWeight: FontWeight.w300,
+                  // Spacer to push content to center
+                  const Spacer(),
+                  // Game name as logo - perfectly centered
+                  Center(
+                    child: Text(
+                      AppConstants.appName.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 48,
+                        color: AppColors.p1Color,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black38,
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'FGTP Labs',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: AppColors.mutedColor, // Same as home page subheading
-                      fontWeight: FontWeight.w500, // Same as home page subheading
+                  // Spacer to push developer text to bottom
+                  const Spacer(),
+                  // Developer text at bottom
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 40.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          'DEVELOPED BY',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppColors.mutedColor.withOpacity(0.7),
+                            fontWeight: FontWeight.w300,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'FGTP LABS',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: AppColors.mutedColor, // Same as home page subheading
+                            fontWeight: FontWeight.w500, // Same as home page subheading
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
           ],
         ),
-        ),
       ),
     );
   }
+
+  /// Build animated particle background effect
+  Widget _buildParticleBackground(BuildContext context) {
+    return Positioned.fill(
+      child: CustomPaint(
+        painter: ParticlePainter(),
+      ),
+    );
+  }
+}
+
+/// Custom painter for particle background effect
+class ParticlePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..strokeWidth = 1.0;
+
+    // Draw subtle glowing particles scattered across the background
+    final particles = [
+      Offset(size.width * 0.1, size.height * 0.15),
+      Offset(size.width * 0.25, size.height * 0.3),
+      Offset(size.width * 0.4, size.height * 0.2),
+      Offset(size.width * 0.6, size.height * 0.25),
+      Offset(size.width * 0.75, size.height * 0.35),
+      Offset(size.width * 0.9, size.height * 0.2),
+      Offset(size.width * 0.15, size.height * 0.6),
+      Offset(size.width * 0.35, size.height * 0.7),
+      Offset(size.width * 0.55, size.height * 0.65),
+      Offset(size.width * 0.7, size.height * 0.75),
+      Offset(size.width * 0.85, size.height * 0.6),
+      Offset(size.width * 0.2, size.height * 0.85),
+      Offset(size.width * 0.5, size.height * 0.9),
+      Offset(size.width * 0.8, size.height * 0.85),
+    ];
+
+    for (final particle in particles) {
+      // Outer glow
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.05);
+      canvas.drawCircle(particle, 8, paint);
+      
+      // Middle glow
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.08);
+      canvas.drawCircle(particle, 5, paint);
+      
+      // Inner bright point
+      paint.color = AppColors.homeAccentGlow.withOpacity(0.15);
+      canvas.drawCircle(particle, 2, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
