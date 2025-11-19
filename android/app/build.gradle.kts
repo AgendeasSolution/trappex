@@ -44,6 +44,12 @@ flutter {
     source = "../.."
 }
 
+configurations.all {
+    // Exclude Play Core library - incompatible with targetSdkVersion 34
+    // This library is only needed for deferred components which we're not using
+    exclude(group = "com.google.android.play", module = "core")
+}
+
 dependencies {
     implementation("com.facebook.android:facebook-android-sdk:[8,9)")
     
