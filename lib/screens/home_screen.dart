@@ -163,6 +163,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ],
                                 ),
                                 textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 16.0, 18.0, 20.0)),

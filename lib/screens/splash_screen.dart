@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
+import '../utils/responsive_utils.dart';
 import 'game_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -101,29 +102,40 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   // Spacer to push content to center
                   const Spacer(),
-                  // Game name as logo - perfectly centered
+                  // Game name as logo - perfectly centered and responsive
                   Center(
-                    child: Text(
-                      AppConstants.appName.toUpperCase(),
-                      style: GoogleFonts.orbitron(
-                        fontSize: 48,
-                        color: AppColors.p1Color,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          const Shadow(
-                            color: Colors.black38,
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: ResponsiveUtils.getResponsivePadding(context),
+                        ),
+                        child: Text(
+                          AppConstants.appName.toUpperCase(),
+                          style: GoogleFonts.orbitron(
+                            fontSize: ResponsiveUtils.getResponsiveLogoFontSize(context),
+                            color: AppColors.p1Color,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: ResponsiveUtils.getResponsiveValue(context, 1.0, 1.2, 1.5),
+                            shadows: [
+                              Shadow(
+                                color: Colors.black38,
+                                blurRadius: ResponsiveUtils.getResponsiveValue(context, 8, 10, 12),
+                                offset: const Offset(0, 4),
+                              ),
+                              // Very subtle glow effect
+                              Shadow(
+                                color: AppColors.homeAccentGlow.withOpacity(0.08),
+                                blurRadius: 3,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           ),
-                          // Very subtle glow effect
-                          Shadow(
-                            color: AppColors.homeAccentGlow.withOpacity(0.08),
-                            blurRadius: 3,
-                            offset: const Offset(0, 0),
-                          ),
-                        ],
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ),
                   // Spacer to push developer text to bottom
