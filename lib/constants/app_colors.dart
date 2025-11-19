@@ -23,6 +23,9 @@ class AppColors {
   static const Color homeCardBg = Color(0xFF0A2E5C); // Card background
   static const Color homeCardBorder = Color(0xFF1A4A7F); // Card border
   
+  // Primary action button color - used for all primary buttons (START GAME, Play Now, etc.)
+  static const Color primaryButtonColor = Color(0xFF00EA98); // Same as homeAccent - bright green
+  
   // Private constructor to prevent instantiation
   AppColors._();
 }

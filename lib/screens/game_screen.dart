@@ -664,7 +664,7 @@ class _GameScreenState extends State<GameScreen> {
                   child: ElevatedButton(
                     onPressed: () => _handlePlayAgainButton(),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.p1Color,
+                      backgroundColor: AppColors.primaryButtonColor,
                       padding: EdgeInsets.symmetric(
                         horizontal: ResponsiveUtils.getResponsiveValue(context, 20, 22, 24),
                         vertical: ResponsiveUtils.getResponsiveValue(context, 10, 11, 12),

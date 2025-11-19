@@ -190,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   widget.onStartGame();
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.homeAccent,
+                                  backgroundColor: AppColors.primaryButtonColor,
                                   padding: EdgeInsets.symmetric(
                                     vertical: ResponsiveUtils.getResponsiveValue(context, 10, 12, 14),
                                   ),
@@ -211,13 +211,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppColors.homeAccent.withOpacity(0.25),
+                                        color: AppColors.primaryButtonColor.withOpacity(0.25),
                                         blurRadius: ResponsiveUtils.getResponsiveValue(context, 6, 8, 10),
                                         spreadRadius: ResponsiveUtils.getResponsiveValue(context, 0, 1, 1),
                                       ),
                                       // Very subtle glow effect
                                       BoxShadow(
-                                        color: AppColors.homeAccentGlow.withOpacity(0.08),
+                                        color: AppColors.primaryButtonColor.withOpacity(0.08),
                                         blurRadius: ResponsiveUtils.getResponsiveValue(context, 3, 4, 5),
                                         spreadRadius: ResponsiveUtils.getResponsiveValue(context, 0, 0.5, 0.5),
                                       ),
@@ -228,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       "START GAME",
                                       style: TextStyle(
                                         fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18, 20, 22),
-                                        color: Colors.black,
+                                        color: AppColors.homeBgDark,
                                         fontWeight: FontWeight.bold,
                                         letterSpacing: 1.2,
                                       ),

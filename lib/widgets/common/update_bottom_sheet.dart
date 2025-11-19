@@ -120,7 +120,7 @@ class UpdateBottomSheet extends StatelessWidget {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.p1Color,
+                      backgroundColor: AppColors.primaryButtonColor,
                       padding: EdgeInsets.symmetric(
                         vertical: ResponsiveUtils.getResponsiveValue(context, 12, 13, 14),
                       ),

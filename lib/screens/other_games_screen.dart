@@ -159,15 +159,15 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
 
   double _calculateChildAspectRatio(double maxWidth) {
     if (maxWidth >= 1200) {
-      return 0.7;
+      return 0.71;
     }
     if (maxWidth >= 900) {
-      return 0.68;
+      return 0.69;
     }
     if (maxWidth >= 600) {
-      return 0.66;
+      return 0.67;
     }
-    return 0.64;
+    return 0.65;
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -286,7 +286,7 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.p1Color,
+                backgroundColor: AppColors.primaryButtonColor,
                 foregroundColor: Colors.black,
                 padding: EdgeInsets.symmetric(
                   horizontal: ResponsiveUtils.getResponsiveValue(context, 20, 22, 24),
@@ -355,7 +355,7 @@ class _OtherGamesScreenState extends State<OtherGamesScreen> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.p1Color,
+                backgroundColor: AppColors.primaryButtonColor,
                 foregroundColor: Colors.black,
                 padding: EdgeInsets.symmetric(
                   horizontal: ResponsiveUtils.getResponsiveValue(context, 20, 22, 24),
@@ -452,36 +452,22 @@ class _OtherGameCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withOpacity(0.05),
-            Colors.white.withOpacity(0.02),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+        color: AppColors.homeCardBg.withOpacity(0.8),
+        border: Border.all(
+          color: AppColors.homeCardBorder.withOpacity(0.6),
+          width: ResponsiveUtils.getResponsiveValue(context, 2.5, 3.0, 3.5),
         ),
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 3,
+            spreadRadius: 0,
           ),
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.black.withOpacity(0.65),
-                Colors.black.withOpacity(0.55),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -528,7 +514,7 @@ class _OtherGameCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onPlay,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.p1Color,
+                      backgroundColor: AppColors.primaryButtonColor,
                       foregroundColor: Colors.black,
                       padding: EdgeInsets.symmetric(
                         vertical: ResponsiveUtils.getResponsiveValue(context, 6, 7, 8),
@@ -539,7 +525,7 @@ class _OtherGameCard extends StatelessWidget {
                         ),
                       ),
                       elevation: ResponsiveUtils.getResponsiveValue(context, 4, 5, 6),
-                      shadowColor: AppColors.p1Color.withOpacity(0.4),
+                      shadowColor: AppColors.primaryButtonColor.withOpacity(0.4),
                     ),
                     child: Text(
                       'Play Now',
