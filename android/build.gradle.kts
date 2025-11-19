@@ -9,11 +9,9 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        // ironSource repository
         maven {
             url = uri("https://android-sdk.is.com/")
         }
-        // JitPack repository (sometimes needed for some dependencies)
         maven {
             url = uri("https://jitpack.io")
         }
@@ -21,7 +19,6 @@ allprojects {
 }
 
 plugins {
-    // Add the dependency for the Google services Gradle plugin
     id("com.google.gms.google-services") version "4.4.4" apply false
 }
 
