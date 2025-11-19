@@ -539,7 +539,12 @@ class _HomeScreenState extends State<HomeScreen> {
     
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(padding),
+      padding: EdgeInsets.fromLTRB(
+        padding,
+        ResponsiveUtils.getResponsiveValue(context, 8, 10, 12),
+        padding,
+        padding,
+      ),
       decoration: BoxDecoration(
         color: AppColors.homeCardBg.withOpacity(0.8),
         borderRadius: BorderRadius.circular(borderRadius),
@@ -560,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             "Player Names",
             style: TextStyle(
-              color: AppColors.p1Color,
+              color: AppColors.homeAccent,
               fontSize: ResponsiveUtils.getResponsiveFontSize(context, 14, 15, 16),
               fontWeight: FontWeight.bold,
             ),
@@ -653,7 +658,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: GridChip(
                 size: AppConstants.easyGridSize,
-                label: "Easy",
+                label: "Quick",
                 isSelected: widget.selectedGridSize == AppConstants.easyGridSize,
                 onTap: () => widget.onGridSizeChanged(AppConstants.easyGridSize),
               ),
@@ -671,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: GridChip(
                 size: AppConstants.hardGridSize,
-                label: "Hard",
+                label: "Epic",
                 isSelected: widget.selectedGridSize == AppConstants.hardGridSize,
                 onTap: () => widget.onGridSizeChanged(AppConstants.hardGridSize),
               ),
