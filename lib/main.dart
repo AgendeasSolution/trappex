@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'screens/splash_screen.dart';
 import 'constants/app_constants.dart';
 import 'services/audio_service.dart';
+import 'services/firebase_analytics_service.dart';
 
 /// Initialize ads with timeout and error handling
 Future<void> _initializeAds() async {
@@ -27,6 +30,20 @@ Future<void> _initializeAudio() async {
   }
 }
 
+/// Initialize Firebase with timeout and error handling
+Future<void> _initializeFirebase() async {
+  try {
+    await Firebase.initializeApp().timeout(
+      const Duration(seconds: 10),
+    );
+    // Log app open event after successful initialization
+    await FirebaseAnalyticsService.instance.logAppOpen();
+  } catch (e) {
+    // Log error but don't crash the app
+    debugPrint('Firebase initialization error: $e');
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -34,6 +51,9 @@ void main() async {
   // Run initialization in parallel for faster startup
   try {
     await Future.wait([
+      // Initialize Firebase first (required for other Firebase services)
+      _initializeFirebase(),
+      
       // Initialize Google Mobile Ads SDK with timeout and error handling
       _initializeAds(),
       
@@ -42,6 +62,7 @@ void main() async {
     ], eagerError: false); // Don't fail if one service fails
   } catch (e) {
     // Continue even if initialization fails - app should still be usable
+    debugPrint('Service initialization error: $e');
   }
   
   // Set preferred orientations to portrait only

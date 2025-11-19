@@ -3,6 +3,8 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Add the Google services Gradle plugin
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -45,4 +47,32 @@ flutter {
 
 dependencies {
     implementation("com.facebook.android:facebook-android-sdk:[8,9)")
+    
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
+    
+    // Add the dependencies for Firebase products you want to use
+    implementation("com.google.firebase:firebase-analytics")
+    
+    // Add the dependencies for any other desired Firebase products
+    // https://firebase.google.com/docs/android/setup#available-libraries
+    
+    // Google Mobile Ads (Flutter plugin already brings GMA runtime)
+    implementation("com.google.android.gms:play-services-ads:23.0.0")
+    
+    // Unity Ads - Latest version
+    implementation("com.unity3d.ads:unity-ads:4.16.3")
+    implementation("com.google.ads.mediation:unity:4.16.3.0")
+    
+    // ironSource - Updated to 8.11.1 to fix Java compilation issues
+    implementation("com.ironsource.sdk:mediationsdk:8.4.0")
+    implementation("com.google.ads.mediation:ironsource:8.4.0.0")
+    
+    // AppLovin (MAX) - Latest version
+    implementation("com.applovin:applovin-sdk:13.5.0")
+    implementation("com.google.ads.mediation:applovin:13.5.0.0")
+    
+    // Meta Audience Network (Facebook) - Latest version
+    implementation("com.facebook.android:audience-network-sdk:6.21.0")
+    implementation("com.google.ads.mediation:facebook:6.21.0.0")
 }
