@@ -214,25 +214,22 @@ class _GameScreenState extends State<GameScreen> {
           setState(() {}); // Redraw board
         }
         
-        // Play computer move sound
+        // Play computer move sound synchronized with wall placement
         try {
-          AudioService.instance.playPlayer2Move();
+          await AudioService.instance.playPlayer2Move();
         } catch (e) {
           // Continue if sound fails
         }
-        
-        // Small delay to ensure sound starts playing
-        await Future.delayed(const Duration(milliseconds: 50));
 
         if (_gameService.allEdgesFilled()) {
           _endGame();
           return;
         }
 
-        // If box was claimed, wait 0.20 seconds before next move
+        // If box was claimed, wait 0.5 seconds before placing next wall in same turn
         tookAnotherTurn = claimed > 0;
         if (tookAnotherTurn) {
-          await Future.delayed(const Duration(milliseconds: 200));
+          await Future.delayed(const Duration(milliseconds: 500));
         }
       } while (tookAnotherTurn && _gameService.turn == 2 && mounted);
 
