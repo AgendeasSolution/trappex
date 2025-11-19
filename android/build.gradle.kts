@@ -9,6 +9,14 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // ironSource repository
+        maven {
+            url = uri("https://android-sdk.is.com/")
+        }
+        // JitPack repository (sometimes needed for some dependencies)
+        maven {
+            url = uri("https://jitpack.io")
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import FBSDKCoreKit
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -15,6 +16,9 @@ import FBSDKCoreKit
       application,
       didFinishLaunchingWithOptions: launchOptions
     )
+    
+    // Set UNUserNotificationCenter delegate for OneSignal
+    UNUserNotificationCenter.current().delegate = self
     
     let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     
@@ -58,5 +62,30 @@ import FBSDKCoreKit
       return true
     }
     return super.application(app, open: url, options: options)
+  }
+  
+  // Handle notification received while app is in foreground
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    // Call super first to let Flutter/OneSignal plugin handle it
+    super.userNotificationCenter(center, willPresent: notification) { options in
+      // Show notification even when app is in foreground
+      completionHandler([.badge, .sound, .banner, .list])
+    }
+  }
+  
+  // Handle notification tapped/opened
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    // Call super first to let Flutter/OneSignal plugin handle it
+    super.userNotificationCenter(center, didReceive: response) {
+      completionHandler()
+    }
   }
 }

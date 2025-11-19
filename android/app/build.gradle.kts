@@ -64,9 +64,10 @@ dependencies {
     implementation("com.unity3d.ads:unity-ads:4.16.3")
     implementation("com.google.ads.mediation:unity:4.16.3.0")
     
-    // ironSource - Updated to 8.11.1 to fix Java compilation issues
-    implementation("com.ironsource.sdk:mediationsdk:8.4.0")
-    implementation("com.google.ads.mediation:ironsource:8.4.0.0")
+    // ironSource - Comment out if version not available, or update to latest compatible version
+    // Note: If build fails, try removing these lines temporarily or update to a working version
+    implementation("com.ironsource.sdk:mediationsdk:8.1.0")
+    implementation("com.google.ads.mediation:ironsource:8.1.0.0")
     
     // AppLovin (MAX) - Latest version
     implementation("com.applovin:applovin-sdk:13.5.0")

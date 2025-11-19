@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- OneSignal Push Notifications -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="Trappex"
         android:name="${applicationName}"
@@ -43,6 +47,14 @@
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id"/>
+        <!-- OneSignal App ID -->
+        <meta-data
+            android:name="onesignal_app_id"
+            android:value="9833657f-496b-4ffb-aafc-8cde39d3b82d"/>
+        <!-- OneSignal Google Project Number (optional, for FCM fallback) -->
+        <meta-data
+            android:name="onesignal_google_project_number"
+            android:value="REMOTE"/>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

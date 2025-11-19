@@ -7,6 +7,7 @@ import 'screens/splash_screen.dart';
 import 'constants/app_constants.dart';
 import 'services/audio_service.dart';
 import 'services/firebase_analytics_service.dart';
+import 'services/onesignal_service.dart';
 
 /// Initialize ads with timeout and error handling
 Future<void> _initializeAds() async {
@@ -44,6 +45,20 @@ Future<void> _initializeFirebase() async {
   }
 }
 
+/// Initialize OneSignal with timeout and error handling
+Future<void> _initializeOneSignal() async {
+  try {
+    await OneSignalService.instance.initialize(
+      appId: '9833657f-496b-4ffb-aafc-8cde39d3b82d',
+    ).timeout(
+      const Duration(seconds: 10),
+    );
+  } catch (e) {
+    // Log error but don't crash the app
+    debugPrint('OneSignal initialization error: $e');
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -59,6 +74,9 @@ void main() async {
       
       // Initialize Audio Service with timeout
       _initializeAudio(),
+      
+      // Initialize OneSignal push notifications
+      _initializeOneSignal(),
     ], eagerError: false); // Don't fail if one service fails
   } catch (e) {
     // Continue even if initialization fails - app should still be usable
