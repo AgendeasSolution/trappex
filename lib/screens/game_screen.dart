@@ -33,7 +33,7 @@ class _GameScreenState extends State<GameScreen> {
   String _gameOverTitle = "Game Over!";
   String _gameOverMessage = "The game has ended.";
   int _selectedGridSize = AppConstants.classicGridSize;
-  String _gameMode = AppConstants.vsComputerMode;
+  String _gameMode = AppConstants.oneVsOneMode;
   String _player1Name = "Player 1";
   String _player2Name = "Player 2";
   GameEdge? _hoveredEdge;

@@ -139,17 +139,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 AppConstants.appName.toUpperCase(),
                                 style: TextStyle(
                                   fontSize: ResponsiveUtils.getResponsiveLogoFontSize(context),
-                                  color: AppColors.p1Color,
+                                  color: AppColors.homeAccent,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: ResponsiveUtils.getResponsiveValue(context, 1.0, 1.2, 1.5),
                                   shadows: [
                                     Shadow(
-                                      color: AppColors.homeAccentGlow.withOpacity(0.3),
+                                      color: AppColors.homeAccent.withOpacity(0.3),
                                       blurRadius: ResponsiveUtils.getResponsiveValue(context, 8, 10, 12),
                                       offset: const Offset(0, 0),
                                     ),
                                     Shadow(
-                                      color: AppColors.homeAccentGlow.withOpacity(0.2),
+                                      color: AppColors.homeAccent.withOpacity(0.2),
                                       blurRadius: ResponsiveUtils.getResponsiveValue(context, 12, 14, 16),
                                       offset: const Offset(0, 0),
                                     ),
@@ -162,14 +162,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             
                             // Game Mode Selector
                             _buildGameModeSelector(context),
-                            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 12.0, 14.0, 16.0)),
+                            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 14.0, 16.0, 18.0)),
                             
                             // Grid Size Selector (Difficulty)
                             _buildGridSelector(context),
                             
                             // Player Name Fields (only shown in 1v1 mode)
                             if (widget.gameMode == AppConstants.oneVsOneMode) ...[
-                              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 16.0, 18.0, 20.0)),
+                              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 14.0, 16.0, 18.0)),
                               _buildPlayerNameFields(context),
                             ],
                             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 16.0, 18.0, 20.0)),
@@ -204,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppColors.homeAccentGlow.withOpacity(0.25),
+                                        color: AppColors.homeAccent.withOpacity(0.25),
                                         blurRadius: ResponsiveUtils.getResponsiveValue(context, 6, 8, 10),
                                         spreadRadius: ResponsiveUtils.getResponsiveValue(context, 0, 1, 1),
                                       ),
@@ -212,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   child: Center(
                                     child: Text(
-                                      "Start Game",
+                                      "START GAME",
                                       style: TextStyle(
                                         fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18, 20, 22),
                                         color: Colors.black,
@@ -490,20 +490,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
   Widget _buildGameModeSelector(BuildContext context) {
-    final spacing = ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12);
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context, 16, 18, 20);
     
     return Row(
       children: [
-        Expanded(
-          child: GameModeChip(
-            mode: AppConstants.vsComputerMode,
-            label: "vs Computer",
-            icon: Icons.computer,
-            isSelected: widget.gameMode == AppConstants.vsComputerMode,
-            onTap: () => widget.onGameModeChanged(AppConstants.vsComputerMode),
-          ),
-        ),
-        SizedBox(width: spacing),
         Expanded(
           child: GameModeChip(
             mode: AppConstants.oneVsOneMode,
@@ -511,6 +501,16 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icons.people,
             isSelected: widget.gameMode == AppConstants.oneVsOneMode,
             onTap: () => widget.onGameModeChanged(AppConstants.oneVsOneMode),
+          ),
+        ),
+        SizedBox(width: spacing),
+        Expanded(
+          child: GameModeChip(
+            mode: AppConstants.vsComputerMode,
+            label: "vs Computer",
+            icon: Icons.computer,
+            isSelected: widget.gameMode == AppConstants.vsComputerMode,
+            onTap: () => widget.onGameModeChanged(AppConstants.vsComputerMode),
           ),
         ),
       ],
@@ -631,28 +631,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildGridSelector(BuildContext context) {
-    final spacing = ResponsiveUtils.getResponsiveSpacing(context, 10, 11, 12);
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context, 16, 18, 20);
     
-    return Column(
-      children: [
-        Padding(
-          padding: EdgeInsets.only(
-            top: ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12),
-          ),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Difficulty",
-              style: TextStyle(
-                color: AppColors.mutedColor,
-                fontSize: ResponsiveUtils.getResponsiveFontSize(context, 18, 19, 20),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12)),
-        Row(
+    return Row(
           children: [
             Expanded(
               child: GridChip(
@@ -681,8 +662,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
-        ),
-      ],
     );
   }
 

@@ -26,44 +26,39 @@ class GridChip extends StatelessWidget {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
               color: isSelected
-                  ? AppColors.homeAccentGlow
+                  ? AppColors.homeAccent
                   : AppColors.homeCardBorder.withOpacity(0.6),
-              width: isSelected ? 2.0 : 1.5),
+              width: isSelected ? 4.0 : 3.0),
           color: AppColors.homeCardBg.withOpacity(0.8),
           boxShadow: isSelected
               ? [
-                  // Outer glow - multiple layers for depth
+                  // Outer glow - reduced intensity
                   BoxShadow(
-                    color: AppColors.homeAccentGlow.withOpacity(0.4),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                  ),
-                  BoxShadow(
-                    color: AppColors.homeAccentGlow.withOpacity(0.3),
-                    blurRadius: 8,
+                    color: AppColors.homeAccent.withOpacity(0.15),
+                    blurRadius: 6,
                     spreadRadius: 1,
                   ),
                   BoxShadow(
-                    color: AppColors.homeAccentGlow.withOpacity(0.2),
+                    color: AppColors.homeAccent.withOpacity(0.1),
                     blurRadius: 4,
                     spreadRadius: 0,
                   ),
                   // Base shadow
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 4,
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 3,
                     spreadRadius: 0,
                   ),
                 ]
               : [
                   BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 4,
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 3,
                       spreadRadius: 0),
                 ],
         ),
@@ -74,13 +69,13 @@ class GridChip extends StatelessWidget {
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: BorderRadius.circular(18),
                     gradient: RadialGradient(
                       center: Alignment.center,
                       radius: 1.2,
                       colors: [
-                        AppColors.homeAccentGlow.withOpacity(0.15),
-                        AppColors.homeAccentGlow.withOpacity(0.05),
+                        AppColors.homeAccent.withOpacity(0.05),
+                        AppColors.homeAccent.withOpacity(0.02),
                         Colors.transparent,
                       ],
                       stops: const [0.0, 0.4, 1.0],
@@ -96,11 +91,11 @@ class GridChip extends StatelessWidget {
                 children: [
                   Text("$size × $size",
                       style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.homeAccent,
                           fontWeight: FontWeight.bold)),
-                  Text(label,
+                  Text(label.toUpperCase(),
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: AppColors.homeAccent.withOpacity(0.9),
                           fontSize: 12)),
                 ],
               ),

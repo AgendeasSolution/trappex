@@ -28,44 +28,39 @@ class GameModeChip extends StatelessWidget {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
               color: isSelected
-                  ? AppColors.homeAccentGlow
+                  ? AppColors.homeAccent
                   : AppColors.homeCardBorder.withOpacity(0.6),
-              width: isSelected ? 2.0 : 1.5),
+              width: isSelected ? 4.0 : 3.0),
           color: AppColors.homeCardBg.withOpacity(0.8),
           boxShadow: isSelected
               ? [
-                  // Outer glow - multiple layers for depth
+                  // Outer glow - reduced intensity
                   BoxShadow(
-                    color: AppColors.homeAccentGlow.withOpacity(0.4),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                  ),
-                  BoxShadow(
-                    color: AppColors.homeAccentGlow.withOpacity(0.3),
-                    blurRadius: 8,
+                    color: AppColors.homeAccent.withOpacity(0.15),
+                    blurRadius: 6,
                     spreadRadius: 1,
                   ),
                   BoxShadow(
-                    color: AppColors.homeAccentGlow.withOpacity(0.2),
+                    color: AppColors.homeAccent.withOpacity(0.1),
                     blurRadius: 4,
                     spreadRadius: 0,
                   ),
                   // Base shadow
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 4,
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 3,
                     spreadRadius: 0,
                   ),
                 ]
               : [
                   BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 4,
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 3,
                       spreadRadius: 0),
                 ],
         ),
@@ -76,13 +71,13 @@ class GameModeChip extends StatelessWidget {
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: BorderRadius.circular(18),
                     gradient: RadialGradient(
                       center: Alignment.center,
                       radius: 1.2,
                       colors: [
-                        AppColors.homeAccentGlow.withOpacity(0.15),
-                        AppColors.homeAccentGlow.withOpacity(0.05),
+                        AppColors.homeAccent.withOpacity(0.05),
+                        AppColors.homeAccent.withOpacity(0.02),
                         Colors.transparent,
                       ],
                       stops: const [0.0, 0.4, 1.0],
@@ -97,13 +92,13 @@ class GameModeChip extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Icon(icon,
-                      color: Colors.white,
-                      size: 24),
-                  const SizedBox(height: 8),
+                      color: AppColors.homeAccent,
+                      size: 40),
+                  const SizedBox(height: 4),
                   Flexible(
-                    child: Text(label,
+                    child: Text(label.toUpperCase(),
                         style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.homeAccent,
                             fontWeight: FontWeight.bold,
                             fontSize: 14),
                         overflow: TextOverflow.ellipsis,
