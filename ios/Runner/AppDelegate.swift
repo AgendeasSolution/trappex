@@ -73,7 +73,11 @@ import UserNotifications
     // Call super first to let Flutter/OneSignal plugin handle it
     super.userNotificationCenter(center, willPresent: notification) { options in
       // Show notification even when app is in foreground
-      completionHandler([.badge, .sound, .banner, .list])
+      if #available(iOS 14.0, *) {
+        completionHandler([.badge, .sound, .banner, .list])
+      } else {
+        completionHandler([.badge, .sound, .alert])
+      }
     }
   }
   

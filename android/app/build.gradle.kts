@@ -30,6 +30,12 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }
@@ -63,4 +69,7 @@ dependencies {
     // Meta Audience Network (Facebook)
     implementation("com.facebook.android:audience-network-sdk:6.21.0")
     implementation("com.google.ads.mediation:facebook:6.21.0.0")
+    
+    // Google Play Core (for Flutter deferred components)
+    implementation("com.google.android.play:core:1.10.3")
 }

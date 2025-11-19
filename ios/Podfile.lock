@@ -100,7 +100,7 @@ PODS:
   - GoogleMobileAdsMediationUnity (4.16.3.0):
     - Google-Mobile-Ads-SDK (~> 12.0)
     - UnityAds (= 4.16.3)
-  - GoogleUserMessagingPlatform (3.0.0)
+  - GoogleUserMessagingPlatform (3.1.0)
   - GoogleUtilities/AppDelegateSwizzler (8.1.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
@@ -307,7 +307,7 @@ SPEC CHECKSUMS:
   GoogleMobileAdsMediationFacebook: 664fd50364d36531196bf24fe62d2db84cad72d0
   GoogleMobileAdsMediationIronSource: 38f21bbcf729b208e63f43b757b61b2c8e0c7ad4
   GoogleMobileAdsMediationUnity: 2861f3dc5abe7c13fafd11bd4484fbd5a762778c
-  GoogleUserMessagingPlatform: f8d0cdad3ca835406755d0a69aa634f00e76d576
+  GoogleUserMessagingPlatform: befe603da6501006420c206222acd449bba45a9c
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   IronSourceAdQualitySDK: 03888a0ac60e1f24ff6277672c3184f00813af64
   IronSourceSDK: 32eeb199f608b590112a8263028a485e50f8d1b7
