@@ -84,13 +84,6 @@
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.android.gms.**
 
-# Google Play Core (for Flutter deferred components)
--keep class com.google.android.play.core.** { *; }
--dontwarn com.google.android.play.core.**
--keep interface com.google.android.play.core.tasks.** { *; }
--keep class com.google.android.play.core.tasks.** { *; }
--keep class com.google.android.play.core.splitcompat.** { *; }
-
 # Keep custom model classes if you have any
 -keep class com.fgtp.trappex.** { *; }
 

@@ -69,7 +69,4 @@ dependencies {
     // Meta Audience Network (Facebook)
     implementation("com.facebook.android:audience-network-sdk:6.21.0")
     implementation("com.google.ads.mediation:facebook:6.21.0.0")
-    
-    // Google Play Core (for Flutter deferred components)
-    implementation("com.google.android.play:core:1.10.3")
 }
