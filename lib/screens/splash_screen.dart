@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui';
+import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import 'game_screen.dart';
@@ -104,15 +105,21 @@ class _SplashScreenState extends State<SplashScreen>
                   Center(
                     child: Text(
                       AppConstants.appName.toUpperCase(),
-                      style: const TextStyle(
+                      style: GoogleFonts.orbitron(
                         fontSize: 48,
                         color: AppColors.p1Color,
                         fontWeight: FontWeight.bold,
                         shadows: [
-                          Shadow(
+                          const Shadow(
                             color: Colors.black38,
                             blurRadius: 8,
                             offset: Offset(0, 4),
+                          ),
+                          // Very subtle glow effect
+                          Shadow(
+                            color: AppColors.homeAccentGlow.withOpacity(0.08),
+                            blurRadius: 3,
+                            offset: const Offset(0, 0),
                           ),
                         ],
                       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import '../services/audio_service.dart';
@@ -137,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 AppConstants.appName.toUpperCase(),
-                                style: TextStyle(
+                                style: GoogleFonts.orbitron(
                                   fontSize: ResponsiveUtils.getResponsiveLogoFontSize(context),
                                   color: AppColors.homeAccent,
                                   fontWeight: FontWeight.bold,
@@ -151,6 +152,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Shadow(
                                       color: AppColors.homeAccent.withOpacity(0.2),
                                       blurRadius: ResponsiveUtils.getResponsiveValue(context, 12, 14, 16),
+                                      offset: const Offset(0, 0),
+                                    ),
+                                    // Very subtle glow effect
+                                    Shadow(
+                                      color: AppColors.homeAccentGlow.withOpacity(0.08),
+                                      blurRadius: ResponsiveUtils.getResponsiveValue(context, 3, 4, 5),
                                       offset: const Offset(0, 0),
                                     ),
                                   ],
@@ -207,6 +214,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: AppColors.homeAccent.withOpacity(0.25),
                                         blurRadius: ResponsiveUtils.getResponsiveValue(context, 6, 8, 10),
                                         spreadRadius: ResponsiveUtils.getResponsiveValue(context, 0, 1, 1),
+                                      ),
+                                      // Very subtle glow effect
+                                      BoxShadow(
+                                        color: AppColors.homeAccentGlow.withOpacity(0.08),
+                                        blurRadius: ResponsiveUtils.getResponsiveValue(context, 3, 4, 5),
+                                        spreadRadius: ResponsiveUtils.getResponsiveValue(context, 0, 0.5, 0.5),
                                       ),
                                     ],
                                   ),
