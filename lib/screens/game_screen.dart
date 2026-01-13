@@ -412,6 +412,18 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  /// Get the grid size label
+  String _getGridSizeLabel(int gridSize) {
+    if (gridSize == AppConstants.easyGridSize) {
+      return "Quick";
+    } else if (gridSize == AppConstants.classicGridSize) {
+      return "Classic";
+    } else if (gridSize == AppConstants.hardGridSize) {
+      return "Epic";
+    }
+    return "Classic"; // Default fallback
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isWelcomeVisible) {
@@ -488,13 +500,13 @@ class _GameScreenState extends State<GameScreen> {
                 ExitButton(
                   onPressed: () => _handleRestartButton(),
                 ),
-                // Game Name
+                // Grid Size Label
                 Expanded(
                   child: Center(
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        AppConstants.appName,
+                        _getGridSizeLabel(_selectedGridSize),
                         style: TextStyle(
                           fontSize: ResponsiveUtils.getResponsiveFontSize(context, 24, 26, 28),
                           color: AppColors.p1Color,
@@ -533,10 +545,18 @@ class _GameScreenState extends State<GameScreen> {
         ),
         // Game Board with Turn Indicators - Centered on screen
         Positioned.fill(
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Center(
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: constraints.maxHeight,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
                 // Player 2/Computer Turn Indicator (Top) - Always rendered, visibility controlled
                 Visibility(
                   visible: _displayedTurn == 2,
@@ -613,8 +633,12 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                   ),
                 ),
-              ],
-            ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
         // Ad Banner at bottom

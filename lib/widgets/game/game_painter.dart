@@ -41,33 +41,13 @@ class GamePainter extends CustomPainter {
               Rect.fromLTWH(c * cellSize, r * cellSize, cellSize, cellSize);
           final isPlayer = boxes[r][c] == 1;
 
-          final paint = Paint()
-            ..shader = LinearGradient(
-              colors: isPlayer
-                  ? [
-                      const Color(0x4D22C55E),
-                      const Color(0x1422C55E)
-                    ] // Green gradient
-                  : [
-                      const Color(0x4DF97316),
-                      const Color(0x14F97316)
-                    ], // Orange gradient
-            ).createShader(rect);
-          canvas.drawRect(rect, paint);
-
-          // Draw the symbol inside the box
+          // Draw only the symbol inside the box (no background color)
           final textSpan = TextSpan(
             text: isPlayer ? '★' : '◆', // Star for Player, Diamond for Computer
             style: TextStyle(
               color: isPlayer ? AppColors.p1WallColor : AppColors.p2WallColor,
               fontSize: cellSize * 0.5,
               fontWeight: FontWeight.bold,
-              shadows: [
-                Shadow(
-                    color: (isPlayer ? AppColors.p1WallColor : AppColors.p2WallColor)
-                        .withOpacity(0.8),
-                    blurRadius: 10),
-              ],
             ),
           );
           final textPainter = TextPainter(
@@ -85,7 +65,7 @@ class GamePainter extends CustomPainter {
   }
 
   void _drawEdgesWithGlow(Canvas canvas) {
-    // First draw the glow effect for placed walls
+    // First draw the subtle glow effect for placed walls
     _drawEdgesGlow(canvas);
     // Then draw the solid walls on top
     _drawEdges(canvas);
@@ -93,16 +73,16 @@ class GamePainter extends CustomPainter {
 
   void _drawEdgesGlow(Canvas canvas) {
     final p1GlowPaint = Paint()
-      ..color = AppColors.p1WallColor.withOpacity(0.3)
-      ..strokeWidth = AppConstants.edgeThickness + 6
+      ..color = AppColors.p1WallColor.withOpacity(0.2)
+      ..strokeWidth = AppConstants.edgeThickness + 4
       ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0);
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
 
     final p2GlowPaint = Paint()
-      ..color = AppColors.p2WallColor.withOpacity(0.3)
-      ..strokeWidth = AppConstants.edgeThickness + 6
+      ..color = AppColors.p2WallColor.withOpacity(0.2)
+      ..strokeWidth = AppConstants.edgeThickness + 4
       ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0);
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
 
     // Draw horizontal edges glow
     for (int i = 0; i <= n; i++) {

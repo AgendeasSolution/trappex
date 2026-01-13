@@ -16,7 +16,7 @@ class AppConstants {
   static const String webGamesUrl = 'https://freegametoplay.com';
 
   // UI constants
-  static const double edgeThickness = 8.0;
+  static const double edgeThickness = 6.0;
   static const double touchTolerance = 15.0;
   static const double cellPadding = 20.0;
   
