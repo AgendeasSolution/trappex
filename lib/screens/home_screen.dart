@@ -94,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final horizontalPadding = ResponsiveUtils.getResponsivePadding(context);
-    final bottomPadding = ResponsiveUtils.getResponsiveSpacing(context, 70.0, 75.0, 80.0);
+    final bottomPadding = ResponsiveUtils.getResponsiveSpacing(context, 140.0, 150.0, 160.0); // Increased to account for explore section
     
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -133,6 +133,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Top spacing for logo
+                            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 35.0, 39.0, 43.0)),
                             // Title - Responsive with FittedBox to ensure one line
                             FittedBox(
                               fit: BoxFit.scaleDown,
@@ -240,22 +242,54 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 24.0, 27.0, 30.0)),
-                            
-                            // How to Play and Sound buttons at top of Explore More Games section
-                            if (!_isHowToPlayVisible)
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  _buildHowToPlayIconButton(context),
-                                  SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, 8, 9, 10)),
-                                  _buildSoundToggleButton(context),
-                                ],
-                              ),
-                            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10.0, 11.0, 12.0)),
-                            
+                          ],
+                        ),
+                      ),
+                    ),
+                    // How to Play button at top-left corner
+                    if (!_isHowToPlayVisible)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            left: ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12),
+                            top: ResponsiveUtils.getResponsiveSpacing(context, 4, 6, 8),
+                            right: ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12),
+                            bottom: ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12),
+                          ),
+                          child: _buildHowToPlayIconButton(context),
+                        ),
+                      ),
+                    // Sound button at top-right corner
+                    if (!_isHowToPlayVisible)
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            left: ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12),
+                            top: ResponsiveUtils.getResponsiveSpacing(context, 4, 6, 8),
+                            right: ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12),
+                            bottom: ResponsiveUtils.getResponsiveSpacing(context, 8, 10, 12),
+                          ),
+                          child: _buildSoundToggleButton(context),
+                        ),
+                      ),
+                    // Explore More Games Section at bottom above ad banner
+                    Positioned(
+                      bottom: ResponsiveUtils.getResponsiveSpacing(context, 90, 100, 110), // Above ad banner (60px) with proper gap
+                      left: 0,
+                      right: 0,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             // Explore More Games Section
                             Row(
                               mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   Icons.info_outline,
@@ -278,7 +312,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 10.0, 11.0, 12.0)),
                             _buildGamesLinksRow(context),
-                            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, 20.0, 22.0, 24.0)),
                           ],
                         ),
                       ),
@@ -315,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSoundToggleButton(BuildContext context) {
     final iconSize = ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18);
     final buttonSize = ResponsiveUtils.getResponsiveValue(context, 36, 38, 40);
-    final padding = ResponsiveUtils.getResponsiveValue(context, 6, 7, 8);
+    final padding = ResponsiveUtils.getResponsiveValue(context, 4, 5, 6);
     final borderRadius = ResponsiveUtils.getResponsiveValue(context, 6, 7, 8);
     
     return OutlinedButton(
@@ -345,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHowToPlayIconButton(BuildContext context) {
     final iconSize = ResponsiveUtils.getResponsiveFontSize(context, 16, 17, 18);
     final buttonSize = ResponsiveUtils.getResponsiveValue(context, 36, 38, 40);
-    final padding = ResponsiveUtils.getResponsiveValue(context, 6, 7, 8);
+    final padding = ResponsiveUtils.getResponsiveValue(context, 4, 5, 6);
     final borderRadius = ResponsiveUtils.getResponsiveValue(context, 6, 7, 8);
     
     return OutlinedButton(

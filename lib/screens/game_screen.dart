@@ -487,11 +487,9 @@ class _GameScreenState extends State<GameScreen> {
           left: 0,
           right: 0,
           child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              horizontalPadding,
-              0,
-              horizontalPadding,
-              0,
+            padding: EdgeInsets.only(
+              left: horizontalPadding,
+              right: horizontalPadding,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
